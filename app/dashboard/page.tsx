@@ -6,7 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Calendar, Clock, Users, BarChart3, Plus, Copy } from "lucide-react";
+import { Calendar, Clock, Users, BarChart3, Plus } from "lucide-react";
+import { CopyButton } from "@/components/CopyButton";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -47,7 +48,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/event-types/new"
+          href="/dashboard/event-types"
           className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-violet-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -56,19 +57,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* Booking Link Banner */}
-      {user.username ? (
+      {bookingUrl ? (
         <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-violet-700">Your booking link</p>
             <p className="text-violet-600 font-mono text-sm mt-1">{bookingUrl}</p>
           </div>
-          <button
-            onClick={() => navigator.clipboard.writeText(bookingUrl!)}
-            className="flex items-center gap-2 bg-violet-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-violet-700 transition-colors"
-          >
-            <Copy className="w-4 h-4" />
-            Copy
-          </button>
+          <CopyButton text={bookingUrl} />
         </div>
       ) : (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">

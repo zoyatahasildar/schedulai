@@ -11,9 +11,9 @@ import { ChatbotButton } from "@/components/chatbot/ChatbotButton";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SchedulAI — Smart Scheduling, Powered by AI",
+  title: "ChronoAI — Smart Scheduling, Powered by AI",
   description:
-    "Schedule meetings effortlessly with AI-powered smart scheduling. Share your booking link, set your availability, and let SchedulAI handle the rest.",
+    "Schedule meetings effortlessly with AI-powered smart scheduling. Share your booking link, set your availability, and let ChronoAI handle the rest.",
   keywords: ["scheduling", "calendar", "booking", "AI", "meetings"],
 };
 

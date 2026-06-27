@@ -1,4 +1,4 @@
-# SchedulAI — Team Setup Guide
+# ChronoAI — Team Setup Guide
 
 > Smart Scheduling, Powered by AI
 
@@ -6,8 +6,8 @@
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_ORG/schedulai.git
-cd schedulai
+git clone https://github.com/YOUR_ORG/chronoai.git
+cd chronoai
 
 # 2. Install dependencies
 npm install
