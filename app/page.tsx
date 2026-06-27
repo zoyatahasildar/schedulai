@@ -16,7 +16,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-violet-700">SchedulAI</span>
+              <span className="text-xl font-bold text-violet-700">ChronoAI</span>
             </div>
             <div className="flex items-center gap-4">
               <Link
@@ -78,7 +78,7 @@ export default function LandingPage() {
             {
               icon: Calendar,
               title: "Smart Availability",
-              desc: "Set your weekly schedule once. SchedulAI handles timezone conversions automatically.",
+              desc: "Set your weekly schedule once. ChronoAI handles timezone conversions automatically.",
             },
             {
               icon: Zap,
@@ -123,7 +123,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>© 2024 SchedulAI — Smart Scheduling, Powered by AI</p>
+          <p>© 2024 ChronoAI — Smart Scheduling, Powered by AI</p>
         </div>
       </footer>
     </div>

@@ -50,10 +50,10 @@ Their booking link: ${process.env.NEXT_PUBLIC_APP_URL}/book/${username}
       }
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const systemPrompt = `
-You are SchedulAI, a friendly and helpful AI scheduling assistant for a booking platform similar to Cal.com.
+You are ChronoAI, a friendly and helpful AI scheduling assistant for a booking platform similar to Cal.com.
 
 ${hostContext}
 
