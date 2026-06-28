@@ -3,7 +3,7 @@
 // Owned by: Lead / Member 3
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sunrise, Sun, Zap, Moon, Coffee, Save, Loader2, Check } from "lucide-react";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
@@ -67,9 +67,44 @@ function windowsFromGrid(grid: Grid) {
 
 export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; startTime: string; endTime: string }[] }) {
   const [grid, setGrid] = useState<Grid>(() => gridFromWindows(initial));
+
+  // After mount: if today has no slots saved, add 9 AM–5 PM so today is always visible
+  useEffect(() => {
+    const todayDow = new Date().getDay();
+    const todayIdx = DAYS.findIndex((d) => d.dow === todayDow);
+    if (todayIdx >= 0) {
+      setGrid((prev) => {
+        if (prev[todayIdx].some(Boolean)) return prev; // already has slots — leave as is
+        return prev.map((day, i) =>
+          i === todayIdx ? HOURS.map((h) => h >= 9 && h < 17) : day
+        );
+      });
+    }
+  }, []);
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  // ── Current week dates for column headers ──────────────────────────────────
+  const WEEK_DATES = (() => {
+    const today = new Date();
+    const todayDow = today.getDay(); // 0=Sun
+    const mondayOffset = todayDow === 0 ? -6 : 1 - todayDow;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return DAYS.map((d) => {
+      const offset = d.dow === 0 ? 6 : d.dow - 1; // Mon=0 … Sun=6
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + offset);
+      return {
+        dateNum: date.getDate(),
+        month: MONTH_ABBR[date.getMonth()],
+        isToday: date.toDateString() === today.toDateString(),
+      };
+    });
+  })();
 
   const toggle = (di: number, hi: number) => {
     setGrid((prev) => prev.map((day, i) => (i === di ? day.map((v, j) => (j === hi ? !v : v)) : day)));
@@ -170,9 +205,16 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
               <thead>
                 <tr>
                   <th className="w-16 py-3 px-3 text-left"><span className="text-[11px] font-bold text-gray-400 uppercase" style={MONO}>Time</span></th>
-                  {DAYS.map((d) => (
-                    <th key={d.label} className="py-3 px-1 text-center"><p className="text-[11px] font-bold text-gray-400 uppercase" style={MONO}>{d.label}</p></th>
-                  ))}
+                  {DAYS.map((d, di) => {
+                    const wd = WEEK_DATES[di];
+                    return (
+                      <th key={d.label} className="py-3 px-1 text-center">
+                        <p className={`text-[10px] font-bold uppercase ${wd.isToday ? "text-[#6C63FF]" : "text-gray-400"}`} style={MONO}>{d.label}</p>
+                        <p className={`text-[18px] font-bold leading-tight ${wd.isToday ? "text-[#6C63FF]" : "text-gray-800"}`}>{wd.dateNum}</p>
+                        <p className={`text-[10px] ${wd.isToday ? "text-[#6C63FF]" : "text-gray-400"}`}>{wd.month}</p>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -227,6 +269,7 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 // app/dashboard/availability/page.tsx
-// Availability — real weekly schedule editor, ScheduleAI design
+// Availability — real weekly schedule editor, ChronoAI design
 // Owned by: Lead / Member 3
 
 import { getServerSession } from "next-auth";
@@ -21,6 +21,13 @@ export default async function AvailabilityPage() {
     startTime: a.startTime,
     endTime: a.endTime,
   }));
+
+  // Always include today so the user can see and confirm today's availability
+  const todayDow = new Date().getDay();
+  const hasToday = data.some((d) => d.dayOfWeek === todayDow);
+  if (!hasToday) {
+    data.push({ dayOfWeek: todayDow, startTime: "09:00", endTime: "17:00" });
+  }
 
   return <AvailabilityClient initial={data} />;
 }
