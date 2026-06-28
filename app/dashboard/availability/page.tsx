@@ -22,5 +22,12 @@ export default async function AvailabilityPage() {
     endTime: a.endTime,
   }));
 
+  // Always include today so the user can see and confirm today's availability
+  const todayDow = new Date().getDay();
+  const hasToday = data.some((d) => d.dayOfWeek === todayDow);
+  if (!hasToday) {
+    data.push({ dayOfWeek: todayDow, startTime: "09:00", endTime: "17:00" });
+  }
+
   return <AvailabilityClient initial={data} />;
 }

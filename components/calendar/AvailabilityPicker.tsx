@@ -4,10 +4,6 @@
 // 🔒 OWNED BY: Member 3 (Calendar + Timezone module)
 // Branch: feat/calendar-slots
 // ═══════════════════════════════════════════════
-//
-// Usage (in dashboard settings):
-//   import AvailabilityPicker from "@/components/calendar/AvailabilityPicker";
-//   <AvailabilityPicker />
 
 "use client";
 
@@ -24,9 +20,12 @@ interface DaySchedule {
 
 const DAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+// Today's day of week (0 = Sunday … 6 = Saturday)
+const TODAY_DOW = new Date().getDay();
+
 const DEFAULT_SCHEDULE: DaySchedule[] = DAY_LABELS.map((_, i) => ({
   dayOfWeek: i,
-  isActive:  i >= 1 && i <= 5, // Mon–Fri on by default
+  isActive:  (i >= 1 && i <= 5) || i === TODAY_DOW, // Mon–Fri + today always active
   startTime: "09:00",
   endTime:   "17:00",
 }));
@@ -51,7 +50,7 @@ interface AvailabilityPickerProps {
 export default function AvailabilityPicker({ onActiveDaysChange }: AvailabilityPickerProps) {
   const [schedule, setSchedule]   = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [loading,  setLoading]    = useState(false);
-  const [fetching, setFetching]   = useState(true);
+  const [fetching, setFetching]   = useState(false); // show defaults immediately, load DB in background
   const [saved,    setSaved]      = useState(false);
   const [error,    setError]      = useState<string | null>(null);
 
@@ -60,7 +59,6 @@ export default function AvailabilityPicker({ onActiveDaysChange }: AvailabilityP
   useEffect(() => {
     const load = async () => {
       try {
-        // We need the current user's ID — fetch it from the session endpoint
         const sessionRes = await fetch("/api/auth/session");
         const sessionData = await sessionRes.json();
         const userId = sessionData?.user?.id;
@@ -70,23 +68,28 @@ export default function AvailabilityPicker({ onActiveDaysChange }: AvailabilityP
         const json = await res.json();
 
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          // Merge saved rows into the default 7-day structure
+          // Merge saved rows — but always keep today active
           const merged = DEFAULT_SCHEDULE.map((def) => {
-            const saved = json.data.find(
+            const savedDay = json.data.find(
               (a: DaySchedule) => a.dayOfWeek === def.dayOfWeek
             );
-            return saved
-              ? { ...def, isActive: saved.isActive, startTime: saved.startTime, endTime: saved.endTime }
-              : def;
+            // Force today's day to always be active regardless of saved value
+            const isActive = def.dayOfWeek === TODAY_DOW ? true : (savedDay ? savedDay.isActive : def.isActive);
+            return savedDay
+              ? { ...def, isActive, startTime: savedDay.startTime, endTime: savedDay.endTime }
+              : { ...def, isActive };
           });
           setSchedule(merged);
-          // Notify parent of initial active days after load
           if (onActiveDaysChange) {
             onActiveDaysChange(merged.filter((d) => d.isActive).map((d) => d.dayOfWeek));
           }
+        } else {
+          // No saved data — use defaults (today already active in DEFAULT_SCHEDULE)
+          if (onActiveDaysChange) {
+            onActiveDaysChange(DEFAULT_SCHEDULE.filter((d) => d.isActive).map((d) => d.dayOfWeek));
+          }
         }
       } catch (err) {
-        // Non-fatal — user can still set availability manually
         console.warn("[AvailabilityPicker] Could not load saved availability:", err);
       } finally {
         setFetching(false);
@@ -102,7 +105,6 @@ export default function AvailabilityPicker({ onActiveDaysChange }: AvailabilityP
       const updated = prev.map((d) =>
         d.dayOfWeek === dayIndex ? { ...d, isActive: !d.isActive } : d
       );
-      // Notify parent (calendar view) of active days change
       if (onActiveDaysChange) {
         onActiveDaysChange(updated.filter((d) => d.isActive).map((d) => d.dayOfWeek));
       }
@@ -160,7 +162,6 @@ export default function AvailabilityPicker({ onActiveDaysChange }: AvailabilityP
       }
 
       setSaved(true);
-      // Auto-hide the success banner after 3 s
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
       setError(err.message ?? "Something went wrong. Please try again.");
@@ -272,7 +273,6 @@ function DayRow({ day, label, onToggle, onChangeStart, onChangeEnd }: DayRowProp
     >
       {/* Toggle + label */}
       <div className="flex items-center gap-3 sm:w-36">
-        {/* Custom toggle switch */}
         <button
           type="button"
           role="switch"
