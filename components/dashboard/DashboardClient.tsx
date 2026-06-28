@@ -1,5 +1,5 @@
 // components/dashboard/DashboardClient.tsx
-// ScheduleAI dashboard UI (client) — receives real data as props
+// ChronoAI dashboard UI (client) — receives real data as props
 // Owned by: Lead
 
 "use client";
