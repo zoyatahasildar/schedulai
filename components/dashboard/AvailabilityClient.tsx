@@ -3,7 +3,7 @@
 // Owned by: Lead / Member 3
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Sunrise, Sun, Zap, Moon, Coffee, Save, Loader2, Check } from "lucide-react";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
@@ -85,6 +85,15 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  // ── Calendar state ──────────────────────────────────────────────────────────
+  const [calYear,  setCalYear]  = useState(() => new Date().getFullYear());
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth()); // 0-indexed
+  const CAL_MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const CAL_DAY_LABELS  = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const prevCalMonth = () => setCalMonth(m => { if (m === 0) { setCalYear(y => y - 1); return 11; } return m - 1; });
+  const nextCalMonth = () => setCalMonth(m => { if (m === 11) { setCalYear(y => y + 1); return 0; } return m + 1; });
+  const dowAvailable = (dow: number) => { const idx = DAYS.findIndex(d => d.dow === dow); return idx >= 0 && grid[idx].some(Boolean); };
 
   const toggle = (di: number, hi: number) => {
     setGrid((prev) => prev.map((day, i) => (i === di ? day.map((v, j) => (j === hi ? !v : v)) : day)));
@@ -240,6 +249,49 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
                   <span className={`text-[12px] font-bold px-2.5 py-1 rounded-lg ${s.text === "Off" ? "bg-gray-100 text-gray-400" : "bg-[#F0EFFF] text-[#6C63FF]"}`} style={MONO}>{s.text}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Monthly Calendar */}
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-4">
+            <div className="flex items-center justify-between mb-3">
+              <button onClick={prevCalMonth} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 text-base transition-colors">&#8249;</button>
+              <h3 className="text-[13px] font-bold text-gray-900">{CAL_MONTH_NAMES[calMonth]} {calYear}</h3>
+              <button onClick={nextCalMonth} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 text-base transition-colors">&#8250;</button>
+            </div>
+            <div className="grid grid-cols-7 mb-1">
+              {CAL_DAY_LABELS.map(d => (
+                <div key={d} className="text-center text-[9px] font-bold text-gray-400 uppercase">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7">
+              {(() => {
+                const firstDay = new Date(calYear, calMonth, 1).getDay();
+                const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+                const today = new Date();
+                const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
+                const cells: React.ReactNode[] = [];
+                for (let i = 0; i < firstDay; i++) {
+                  cells.push(<div key={`e${i}`} />);
+                }
+                for (let d = 1; d <= daysInMonth; d++) {
+                  const dow = (firstDay + d - 1) % 7;
+                  const isToday = isCurrentMonth && today.getDate() === d;
+                  const avail = dowAvailable(dow);
+                  cells.push(
+                    <div key={d} className="flex items-center justify-center aspect-square">
+                      <span className={`text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-medium ${isToday ? "bg-[#6C63FF] text-white font-bold" : avail ? "text-[#6C63FF] bg-[#F0EFFF]" : "text-gray-400"}`}>
+                        {d}
+                      </span>
+                    </div>
+                  );
+                }
+                return cells;
+              })()}
+            </div>
+            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-50 flex-wrap">
+              <span className="flex items-center gap-1 text-[10px] text-gray-500"><span className="w-3 h-3 rounded-full bg-[#6C63FF] inline-block" />Today</span>
+              <span className="flex items-center gap-1 text-[10px] text-gray-500"><span className="w-3 h-3 rounded-full bg-[#F0EFFF] inline-block" />Available</span>
             </div>
           </div>
         </div>
