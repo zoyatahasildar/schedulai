@@ -1,4 +1,4 @@
-// ChronoAI - Prisma Schema
+// SchedulAI - Prisma Schema
 // This file is owned by the Lead (Auth module)
 // All teammates use these models — DO NOT modify without notifying the team
 
@@ -70,8 +70,32 @@ model Booking {
   // Relations
   eventTypeId String
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  history     BookingHistory[]  // Member 2: audit trail (create/reschedule/cancel)
 
   @@map("bookings")
+}
+
+// ─── BOOKING HISTORY ───────────────────────────────────
+// Owned by: Member 2 (Booking Engine)
+// Append-only audit log of what happened to a booking:
+// creation, reschedules (old → new time), and cancellations.
+model BookingHistory {
+  id                String        @id @default(cuid())
+  action            BookingAction
+  // Snapshot of the times involved (UTC). For RESCHEDULED both pairs are set.
+  previousStartTime DateTime?
+  previousEndTime   DateTime?
+  newStartTime      DateTime?
+  newEndTime        DateTime?
+  reason            String?       // optional note (e.g. cancellation reason)
+  createdAt         DateTime      @default(now())
+
+  // Relations
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_history")
 }
 
 // ─── AVAILABILITY ──────────────────────────────────────
@@ -138,4 +162,14 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+  REJECTED   // Member 2: host declined a pending request
+}
+
+// Owned by: Member 2 (Booking Engine) — booking history action types
+enum BookingAction {
+  CREATED
+  RESCHEDULED
+  CANCELLED
+  ACCEPTED
+  REJECTED
 }

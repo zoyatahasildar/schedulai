@@ -4,9 +4,14 @@
 // 🔒 OWNED BY: Member 2 (Booking Engine)
 // Branch: feature/booking
 // ═══════════════════════════════════════════════
-// POST  /api/booking → create a new booking (validation + conflict check + notify)
+// POST  /api/booking → create a new booking (validation + conflict check + notify + history)
 // GET   /api/booking → list bookings (for dashboard, auth required)
-// PATCH /api/booking → update status (confirm/cancel, auth required)
+// PATCH /api/booking → update status (confirm/cancel; records history on cancel)
+//
+// Per-booking guest actions live in nested routes (same module):
+//   GET  /api/booking/[bookingId]            → single booking + history
+//   POST /api/booking/[bookingId]/cancel     → cancel (status → CANCELLED, history, email)
+//   POST /api/booking/[bookingId]/reschedule → move to a new slot (history, email)
 // ═══════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from "next/server";
@@ -18,23 +23,9 @@ import type { BookingStatus } from "@/types";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Fire-and-forget notification trigger (Member 4's module).
-// Wrapped so a notification failure never breaks the booking itself.
-async function triggerNotification(bookingId: string) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!baseUrl) return;
-    await fetch(`${baseUrl}/api/notifications`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookingId }),
-    });
-  } catch (err) {
-    console.error("Notification trigger failed (non-fatal):", err);
-  }
-}
-
-// POST: Create a new booking
+// POST: Create a new booking REQUEST.
+// Approval workflow: bookings start as PENDING and the host must accept them
+// (see /api/booking/[bookingId]/accept) before a confirmation email is sent.
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -93,6 +84,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Create booking + its first history entry atomically
     const booking = await prisma.booking.create({
       data: {
         guestName: String(guestName).trim(),
@@ -102,13 +94,20 @@ export async function POST(req: NextRequest) {
         startTime: start,
         endTime: end,
         eventTypeId,
-        status: "CONFIRMED",
+        status: "PENDING", // awaits host approval
+        history: {
+          create: {
+            action: "CREATED",
+            newStartTime: start,
+            newEndTime: end,
+          },
+        },
       },
       include: { eventType: { include: { user: true } } },
     });
 
-    // Trigger guest + host emails (non-blocking failure)
-    await triggerNotification(booking.id);
+    // No confirmation email here — the request is PENDING. The confirmation
+    // email is sent when the host accepts the request.
 
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
   } catch (error) {
@@ -144,7 +143,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PATCH: Update a booking's status (confirm / cancel / complete)
+// PATCH: Update a booking's status (confirm / cancel / complete) — host dashboard
 export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -176,7 +175,22 @@ export async function PATCH(req: NextRequest) {
 
     const updated = await prisma.booking.update({
       where: { id: bookingId },
-      data: { status },
+      data: {
+        status,
+        // Record a history entry when a host cancels from the dashboard
+        ...(status === "CANCELLED" && existing.status !== "CANCELLED"
+          ? {
+              history: {
+                create: {
+                  action: "CANCELLED",
+                  reason: "Cancelled by host",
+                  previousStartTime: existing.startTime,
+                  previousEndTime: existing.endTime,
+                },
+              },
+            }
+          : {}),
+      },
       include: { eventType: true },
     });
 

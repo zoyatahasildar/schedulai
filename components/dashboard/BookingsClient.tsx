@@ -4,13 +4,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Search, Filter, Clock, Video, CheckCircle, XCircle, AlertCircle,
-  Calendar, ChevronDown, MoreHorizontal, Download, Loader2,
+  Calendar, ChevronDown, MoreHorizontal, Download, Loader2, Inbox,
 } from "lucide-react";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
-type Status = "confirmed" | "pending" | "cancelled" | "completed";
+type Status = "confirmed" | "pending" | "cancelled" | "completed" | "rejected";
 
 interface Booking {
   id: string;
@@ -29,6 +30,7 @@ const STATUS_CONFIG: Record<Status, { label: string; dot: string; text: string; 
   pending: { label: "Pending", dot: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50" },
   cancelled: { label: "Cancelled", dot: "bg-red-500", text: "text-red-700", bg: "bg-red-50" },
   completed: { label: "Completed", dot: "bg-blue-500", text: "text-blue-700", bg: "bg-blue-50" },
+  rejected: { label: "Rejected", dot: "bg-rose-500", text: "text-rose-700", bg: "bg-rose-50" },
 };
 
 const TABS: { id: Status | "all"; label: string }[] = [
@@ -37,6 +39,7 @@ const TABS: { id: Status | "all"; label: string }[] = [
   { id: "pending", label: "Pending" },
   { id: "completed", label: "Completed" },
   { id: "cancelled", label: "Cancelled" },
+  { id: "rejected", label: "Rejected" },
 ];
 
 const PAGE_SIZE = 8;
@@ -129,9 +132,23 @@ export function BookingsClient({ initialBookings }: { initialBookings: Booking[]
           <h1 className="text-[28px] font-bold text-gray-900">Bookings</h1>
           <p className="text-[14px] text-gray-500 mt-1">Track and manage all your scheduled appointments.</p>
         </div>
-        <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 bg-[#F0EFFF] text-[#6C63FF] text-[13px] font-bold rounded-xl hover:bg-[#E8E7FF] transition-colors shadow-sm">
-          <Download className="w-4 h-4" /> Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Pending request count badge — links to the review screen (same tab) */}
+          <Link
+            href="/dashboard/pending"
+            className="relative flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 text-[13px] font-bold rounded-xl hover:border-[#6C63FF] hover:text-[#6C63FF] transition-colors shadow-sm"
+          >
+            <Inbox className="w-4 h-4" /> Pending Requests
+            {(counts.pending || 0) > 0 && (
+              <span className="ml-0.5 min-w-[20px] h-5 inline-flex items-center justify-center px-1.5 text-[11px] font-bold text-white bg-[#6C63FF] rounded-full" style={MONO}>
+                {counts.pending}
+              </span>
+            )}
+          </Link>
+          <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 bg-[#F0EFFF] text-[#6C63FF] text-[13px] font-bold rounded-xl hover:bg-[#E8E7FF] transition-colors shadow-sm">
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Summary */}
