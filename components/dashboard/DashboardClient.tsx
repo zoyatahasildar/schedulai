@@ -217,7 +217,7 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
                   <span className="text-white/80 text-[12px]">AI-powered scheduling</span>
                 </div>
                 <h2 className="text-[22px] font-bold text-white leading-tight mb-1">
-                  Welcome to ScheduleAI
+                  Welcome to ChronoAI
                 </h2>
                 <p className="text-white/70 text-[13px]">
                   {stats.total === 0

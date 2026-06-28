@@ -205,7 +205,7 @@ function NotificationsSection() {
     <div className="space-y-6">
       <div>
         <h2 className="text-[20px] font-bold text-white">Notifications</h2>
-        <p className="text-[14px] text-white/50 mt-1">What ScheduleAI sends on your behalf.</p>
+        <p className="text-[14px] text-white/50 mt-1">What ChronoAI sends on your behalf.</p>
       </div>
       <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6 space-y-4">
         {[

@@ -1,4 +1,4 @@
-// Analytics — real data computed from bookings, ScheduleAI design
+// Analytics — real data computed from bookings, ChronoAI design
 // Owned by: Member 5 / Lead
 
 import { getServerSession } from "next-auth";

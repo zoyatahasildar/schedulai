@@ -1,5 +1,5 @@
 // app/dashboard/event-types/page.tsx
-// Event Types — real data, ScheduleAI design
+// Event Types — real data, ChronoAI design
 // Owned by: Lead
 
 import { getServerSession } from "next-auth";

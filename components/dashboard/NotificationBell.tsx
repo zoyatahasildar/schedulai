@@ -15,7 +15,7 @@ type Notif = {
   category: "booking" | "event";
 };
 
-const SEEN_KEY = "scheduleai_notif_seen";
+const SEEN_KEY = "chronoai_notif_seen";
 
 const STYLE = {
   new: { icon: CheckCircle, color: "#10B981", bg: "#ECFDF5" },

@@ -46,7 +46,7 @@ export default function LoginPage() {
             <Zap className="w-5 h-5 text-white fill-white" />
           </span>
           <span className="text-2xl font-bold text-gray-900">
-            Schedule<span className="text-[#6C63FF]">AI</span>
+            Chrono<span className="text-[#6C63FF]">AI</span>
           </span>
         </div>
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              New to ScheduleAI?{" "}
+              New to ChronoAI?{" "}
               <button onClick={() => setMode("signup")} className="font-semibold text-[#6C63FF] hover:underline">
                 Create a free account
               </button>
