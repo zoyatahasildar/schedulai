@@ -181,6 +181,52 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
         ))}
       </div>
 
+      {/* Small Calendar – left corner */}
+      <div className="mb-4">
+        <div className="inline-block bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-4 w-56">
+          <div className="flex items-center justify-between mb-2">
+            <button onClick={prevCalMonth} className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors text-sm">&#8249;</button>
+            <span className="text-[12px] font-bold text-gray-800">{CAL_MONTH_NAMES[calMonth]} {calYear}</span>
+            <button onClick={nextCalMonth} className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors text-sm">&#8250;</button>
+          </div>
+          <div className="grid grid-cols-7 mb-1">
+            {CAL_DAY_LABELS.map(d => (
+              <div key={d} className="text-center text-[8px] font-bold text-gray-400 uppercase">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-y-0.5">
+            {(() => {
+              const firstDay = new Date(calYear, calMonth, 1).getDay();
+              const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+              const today = new Date();
+              const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
+              const cells: React.ReactNode[] = [];
+              for (let i = 0; i < firstDay; i++) {
+                cells.push(<div key={`e${i}`} />);
+              }
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dow = (firstDay + d - 1) % 7;
+                const isToday = isCurrentMonth && today.getDate() === d;
+                const avail = dowAvailable(dow);
+                cells.push(
+                  <div key={d} className="flex items-center justify-center">
+                    <span className={`text-[9px] w-4 h-4 flex items-center justify-center rounded-full
+                      ${isToday ? "bg-[#6C63FF] text-white font-bold" : avail ? "text-[#6C63FF] bg-[#F0EFFF] font-semibold" : "text-gray-400"}`}>
+                      {d}
+                    </span>
+                  </div>
+                );
+              }
+              return cells;
+            })()}
+          </div>
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+            <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full bg-[#6C63FF] inline-block" />Today</span>
+            <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full bg-[#F0EFFF] inline-block" />Available</span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Grid */}
         <div className="xl:col-span-3 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] overflow-hidden">
@@ -252,48 +298,6 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
             </div>
           </div>
 
-          {/* Monthly Calendar */}
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-4">
-            <div className="flex items-center justify-between mb-3">
-              <button onClick={prevCalMonth} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 text-base transition-colors">&#8249;</button>
-              <h3 className="text-[13px] font-bold text-gray-900">{CAL_MONTH_NAMES[calMonth]} {calYear}</h3>
-              <button onClick={nextCalMonth} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 text-base transition-colors">&#8250;</button>
-            </div>
-            <div className="grid grid-cols-7 mb-1">
-              {CAL_DAY_LABELS.map(d => (
-                <div key={d} className="text-center text-[9px] font-bold text-gray-400 uppercase">{d}</div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7">
-              {(() => {
-                const firstDay = new Date(calYear, calMonth, 1).getDay();
-                const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-                const today = new Date();
-                const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
-                const cells: React.ReactNode[] = [];
-                for (let i = 0; i < firstDay; i++) {
-                  cells.push(<div key={`e${i}`} />);
-                }
-                for (let d = 1; d <= daysInMonth; d++) {
-                  const dow = (firstDay + d - 1) % 7;
-                  const isToday = isCurrentMonth && today.getDate() === d;
-                  const avail = dowAvailable(dow);
-                  cells.push(
-                    <div key={d} className="flex items-center justify-center aspect-square">
-                      <span className={`text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-medium ${isToday ? "bg-[#6C63FF] text-white font-bold" : avail ? "text-[#6C63FF] bg-[#F0EFFF]" : "text-gray-400"}`}>
-                        {d}
-                      </span>
-                    </div>
-                  );
-                }
-                return cells;
-              })()}
-            </div>
-            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-50 flex-wrap">
-              <span className="flex items-center gap-1 text-[10px] text-gray-500"><span className="w-3 h-3 rounded-full bg-[#6C63FF] inline-block" />Today</span>
-              <span className="flex items-center gap-1 text-[10px] text-gray-500"><span className="w-3 h-3 rounded-full bg-[#F0EFFF] inline-block" />Available</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
