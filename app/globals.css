@@ -121,4 +121,4 @@
 .lp .feat-card { transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s, border-color .3s; }
 .lp .feat-card:hover { transform: translateY(-8px) rotate(-1.5deg); border-color: var(--c); box-shadow: 0 24px 50px -14px var(--cs); }
 .lp .feat-card:hover h3 { color: var(--c); }
->>>>>>> origin/main
+
