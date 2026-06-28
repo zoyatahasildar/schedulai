@@ -209,16 +209,24 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
               const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
               const today = new Date();
               const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
+              const isPastMonth = calYear < today.getFullYear() || (calYear === today.getFullYear() && calMonth < today.getMonth());
+              const isFutureMonth = calYear > today.getFullYear() || (calYear === today.getFullYear() && calMonth > today.getMonth());
               const cells: React.ReactNode[] = [];
               for (let i = 0; i < firstDay; i++) {
                 cells.push(<div key={`e${i}`} />);
               }
               for (let d = 1; d <= daysInMonth; d++) {
                 const isToday = isCurrentMonth && today.getDate() === d;
+                const isFuture = isFutureMonth || (isCurrentMonth && d > today.getDate());
+                const isPast = isPastMonth || (isCurrentMonth && d < today.getDate());
                 cells.push(
                   <div key={d} className="flex items-center justify-center">
                     <span className={`text-[9px] w-4 h-4 flex items-center justify-center rounded-full
-                      ${isToday ? "bg-[#6C63FF] text-white font-bold" : "text-gray-500"}`}>
+                      ${isToday
+                        ? "bg-[#6C63FF] text-white font-bold"
+                        : isFuture
+                          ? "border border-[#6C63FF] text-[#6C63FF]"
+                          : "text-gray-300"}`}>
                       {d}
                     </span>
                   </div>
@@ -229,6 +237,7 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
           </div>
           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
             <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full bg-[#6C63FF] inline-block" />Today</span>
+            <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full border border-[#6C63FF] inline-block" />Available</span>
           </div>
         </div>
       </div>
