@@ -86,14 +86,25 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
-  // ── Calendar state ──────────────────────────────────────────────────────────
-  const [calYear,  setCalYear]  = useState(() => new Date().getFullYear());
-  const [calMonth, setCalMonth] = useState(() => new Date().getMonth()); // 0-indexed
-  const CAL_MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const CAL_DAY_LABELS  = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const prevCalMonth = () => setCalMonth(m => { if (m === 0) { setCalYear(y => y - 1); return 11; } return m - 1; });
-  const nextCalMonth = () => setCalMonth(m => { if (m === 11) { setCalYear(y => y + 1); return 0; } return m + 1; });
-  const dowAvailable = (dow: number) => { const idx = DAYS.findIndex(d => d.dow === dow); return idx >= 0 && grid[idx].some(Boolean); };
+  // ── Current week dates for column headers ──────────────────────────────────
+  const WEEK_DATES = (() => {
+    const today = new Date();
+    const todayDow = today.getDay(); // 0=Sun
+    const mondayOffset = todayDow === 0 ? -6 : 1 - todayDow;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return DAYS.map((d) => {
+      const offset = d.dow === 0 ? 6 : d.dow - 1; // Mon=0 … Sun=6
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + offset);
+      return {
+        dateNum: date.getDate(),
+        month: MONTH_ABBR[date.getMonth()],
+        isToday: date.toDateString() === today.toDateString(),
+      };
+    });
+  })();
 
   const toggle = (di: number, hi: number) => {
     setGrid((prev) => prev.map((day, i) => (i === di ? day.map((v, j) => (j === hi ? !v : v)) : day)));
@@ -181,67 +192,6 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
         ))}
       </div>
 
-      {/* Small Calendar – left corner */}
-      <div className="mb-4">
-        <div className="inline-block bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-4 w-56">
-          <div className="flex items-center justify-between mb-1">
-            <button onClick={prevCalMonth} className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors text-sm">&#8249;</button>
-            <div className="text-center">
-              <span className="text-[12px] font-bold text-gray-800">{CAL_MONTH_NAMES[calMonth]} {calYear}</span>
-              {(calYear !== new Date().getFullYear() || calMonth !== new Date().getMonth()) && (
-                <button onClick={() => { setCalYear(new Date().getFullYear()); setCalMonth(new Date().getMonth()); }}
-                  className="block text-[9px] text-[#6C63FF] hover:underline mx-auto leading-tight">
-                  Go to today
-                </button>
-              )}
-            </div>
-            <button onClick={nextCalMonth} className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors text-sm">&#8250;</button>
-          </div>
-          <div className="mb-1" />
-          <div className="grid grid-cols-7 mb-1">
-            {CAL_DAY_LABELS.map(d => (
-              <div key={d} className="text-center text-[8px] font-bold text-gray-400 uppercase">{d}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-y-0.5">
-            {(() => {
-              const firstDay = new Date(calYear, calMonth, 1).getDay();
-              const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-              const today = new Date();
-              const isCurrentMonth = today.getFullYear() === calYear && today.getMonth() === calMonth;
-              const isPastMonth = calYear < today.getFullYear() || (calYear === today.getFullYear() && calMonth < today.getMonth());
-              const isFutureMonth = calYear > today.getFullYear() || (calYear === today.getFullYear() && calMonth > today.getMonth());
-              const cells: React.ReactNode[] = [];
-              for (let i = 0; i < firstDay; i++) {
-                cells.push(<div key={`e${i}`} />);
-              }
-              for (let d = 1; d <= daysInMonth; d++) {
-                const isToday = isCurrentMonth && today.getDate() === d;
-                const isFuture = isFutureMonth || (isCurrentMonth && d > today.getDate());
-                const isPast = isPastMonth || (isCurrentMonth && d < today.getDate());
-                cells.push(
-                  <div key={d} className="flex items-center justify-center">
-                    <span className={`text-[9px] w-4 h-4 flex items-center justify-center rounded-full
-                      ${isToday
-                        ? "bg-[#6C63FF] text-white font-bold"
-                        : isFuture
-                          ? "border border-[#6C63FF] text-[#6C63FF]"
-                          : "text-gray-300"}`}>
-                      {d}
-                    </span>
-                  </div>
-                );
-              }
-              return cells;
-            })()}
-          </div>
-          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
-            <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full bg-[#6C63FF] inline-block" />Today</span>
-            <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full border border-[#6C63FF] inline-block" />Available</span>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Grid */}
         <div className="xl:col-span-3 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] overflow-hidden">
@@ -255,9 +205,16 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
               <thead>
                 <tr>
                   <th className="w-16 py-3 px-3 text-left"><span className="text-[11px] font-bold text-gray-400 uppercase" style={MONO}>Time</span></th>
-                  {DAYS.map((d) => (
-                    <th key={d.label} className="py-3 px-1 text-center"><p className="text-[11px] font-bold text-gray-400 uppercase" style={MONO}>{d.label}</p></th>
-                  ))}
+                  {DAYS.map((d, di) => {
+                    const wd = WEEK_DATES[di];
+                    return (
+                      <th key={d.label} className="py-3 px-1 text-center">
+                        <p className={`text-[10px] font-bold uppercase ${wd.isToday ? "text-[#6C63FF]" : "text-gray-400"}`} style={MONO}>{d.label}</p>
+                        <p className={`text-[18px] font-bold leading-tight ${wd.isToday ? "text-[#6C63FF]" : "text-gray-800"}`}>{wd.dateNum}</p>
+                        <p className={`text-[10px] ${wd.isToday ? "text-[#6C63FF]" : "text-gray-400"}`}>{wd.month}</p>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
