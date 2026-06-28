@@ -1,5 +1,5 @@
 // components/DashboardNav.tsx
-// Dashboard navigation bar
+// Dashboard top navigation — ScheduleAI design
 // Owned by: Lead
 
 "use client";
@@ -7,7 +7,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Calendar, Clock, Users, Settings, BarChart3, LogOut } from "lucide-react";
+import {
+  Zap,
+  LayoutDashboard,
+  CalendarDays,
+  BookOpen,
+  Clock,
+  BarChart3,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import Image from "next/image";
 
 interface DashboardNavProps {
@@ -18,55 +27,72 @@ interface DashboardNavProps {
   };
 }
 
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: Calendar },
-  { href: "/dashboard/event-types", label: "Event Types", icon: Clock },
-  { href: "/dashboard/bookings", label: "Bookings", icon: Users },
-  { href: "/dashboard/availability", label: "Availability", icon: Calendar },
+const NAV_ITEMS = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/event-types", label: "Event Types", icon: CalendarDays },
+  { href: "/dashboard/bookings", label: "Bookings", icon: BookOpen },
+  { href: "/dashboard/availability", label: "Availability", icon: Clock },
   { href: "/admin", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
+
+function initials(name?: string | null) {
+  if (!name) return "U";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export function DashboardNav({ user }: DashboardNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-violet-700">SchedulAI</span>
-          </Link>
-
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ href, label, icon: Icon }) => {
-              const active =
-                pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-violet-100 text-violet-700"
-                      : "text-gray-600 hover:text-violet-600 hover:bg-violet-50"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </Link>
-              );
-            })}
+    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+      <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/dashboard" className="flex items-center gap-2.5 flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
+            <Zap className="w-4 h-4 text-white fill-white" />
           </div>
+          <span className="text-[15px] font-bold text-gray-900 tracking-tight">
+            Schedule<span className="text-[#6C63FF]">AI</span>
+          </span>
+        </Link>
 
-          {/* User Menu */}
-          <div className="flex items-center gap-3">
-            {user.image && (
+        {/* Nav items */}
+        <div className="flex items-stretch h-16">
+          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            const isActive =
+              pathname === href ||
+              (href !== "/dashboard" && pathname.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`relative flex items-center gap-2 px-4 text-[13px] font-medium transition-all duration-150 ${
+                  isActive ? "text-[#6C63FF]" : "text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                <Icon className="w-4 h-4" strokeWidth={isActive ? 2 : 1.75} />
+                <span className="hidden md:inline">{label}</span>
+                {isActive && (
+                  <span className="absolute bottom-0 left-2 right-2 h-[2.5px] bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] rounded-t-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Right — user + logout */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 transition-all"
+          >
+            {user.image ? (
               <Image
                 src={user.image}
                 alt={user.name ?? "User"}
@@ -74,17 +100,26 @@ export function DashboardNav({ user }: DashboardNavProps) {
                 height={32}
                 className="rounded-full"
               />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
+                {initials(user.name)}
+              </div>
             )}
-            <span className="hidden sm:block text-sm text-gray-700 font-medium">
-              {user.name}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+            <div className="hidden md:block text-left">
+              <p className="text-[13px] font-semibold text-gray-800 leading-tight">
+                {user.name ?? "Your account"}
+              </p>
+              <p className="text-[11px] text-gray-400 leading-tight">Free plan</p>
+            </div>
+          </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            title="Log out"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Log out</span>
+          </button>
         </div>
       </div>
     </nav>

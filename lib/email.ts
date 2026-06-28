@@ -14,7 +14,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "noreply@schedulai.com";
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "noreply@chronoai.com";
 
 export interface BookingEmailData {
   guestName: string;
@@ -80,7 +80,7 @@ function buildConfirmationEmail(data: BookingEmailData): string {
         ${data.notes ? `<p><strong>📝 Notes:</strong> ${data.notes}</p>` : ""}
       </div>
       <p>See you then!</p>
-      <p style="color: #888; font-size: 12px;">Powered by SchedulAI</p>
+      <p style="color: #888; font-size: 12px;">Powered by ChronoAI</p>
     </div>
   `;
 }
@@ -96,7 +96,7 @@ function buildHostNotificationEmail(data: BookingEmailData): string {
         <p><strong>🕐 Time:</strong> ${data.startTime.toLocaleTimeString()} – ${data.endTime.toLocaleTimeString()}</p>
         ${data.notes ? `<p><strong>📝 Guest notes:</strong> ${data.notes}</p>` : ""}
       </div>
-      <p style="color: #888; font-size: 12px;">Powered by SchedulAI</p>
+      <p style="color: #888; font-size: 12px;">Powered by ChronoAI</p>
     </div>
   `;
 }
