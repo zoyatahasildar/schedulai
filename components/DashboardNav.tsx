@@ -1,5 +1,5 @@
 // components/DashboardNav.tsx
-// Dashboard top navigation — ScheduleAI design, with in-app notification bell
+// Dashboard top navigation — ChronoAI design, with in-app notification bell
 // Owned by: Lead
 
 "use client";
@@ -43,7 +43,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
             <Zap className="w-4 h-4 text-white fill-white" />
           </span>
           <span className="text-[15px] font-bold text-gray-900 tracking-tight">
-            Schedule<span className="text-[#6C63FF]">AI</span>
+            Chrono<span className="text-[#6C63FF]">AI</span>
           </span>
         </Link>
 
