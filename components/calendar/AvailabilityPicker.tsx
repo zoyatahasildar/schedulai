@@ -44,7 +44,11 @@ for (let h = 0; h < 24; h++) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function AvailabilityPicker() {
+interface AvailabilityPickerProps {
+  onActiveDaysChange?: (activeDays: number[]) => void;
+}
+
+export default function AvailabilityPicker({ onActiveDaysChange }: AvailabilityPickerProps) {
   const [schedule, setSchedule]   = useState<DaySchedule[]>(DEFAULT_SCHEDULE);
   const [loading,  setLoading]    = useState(false);
   const [fetching, setFetching]   = useState(true);
@@ -76,6 +80,10 @@ export default function AvailabilityPicker() {
               : def;
           });
           setSchedule(merged);
+          // Notify parent of initial active days after load
+          if (onActiveDaysChange) {
+            onActiveDaysChange(merged.filter((d) => d.isActive).map((d) => d.dayOfWeek));
+          }
         }
       } catch (err) {
         // Non-fatal — user can still set availability manually
@@ -90,14 +98,19 @@ export default function AvailabilityPicker() {
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const toggleDay = useCallback((dayIndex: number) => {
-    setSchedule((prev) =>
-      prev.map((d) =>
+    setSchedule((prev) => {
+      const updated = prev.map((d) =>
         d.dayOfWeek === dayIndex ? { ...d, isActive: !d.isActive } : d
-      )
-    );
+      );
+      // Notify parent (calendar view) of active days change
+      if (onActiveDaysChange) {
+        onActiveDaysChange(updated.filter((d) => d.isActive).map((d) => d.dayOfWeek));
+      }
+      return updated;
+    });
     setSaved(false);
     setError(null);
-  }, []);
+  }, [onActiveDaysChange]);
 
   const updateTime = useCallback(
     (dayIndex: number, field: "startTime" | "endTime", value: string) => {
