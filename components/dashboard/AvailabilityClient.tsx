@@ -3,7 +3,7 @@
 // Owned by: Lead / Member 3
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sunrise, Sun, Zap, Moon, Coffee, Save, Loader2, Check } from "lucide-react";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
@@ -67,6 +67,21 @@ function windowsFromGrid(grid: Grid) {
 
 export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; startTime: string; endTime: string }[] }) {
   const [grid, setGrid] = useState<Grid>(() => gridFromWindows(initial));
+
+  // After mount: if today has no slots saved, add 9 AM–5 PM so today is always visible
+  useEffect(() => {
+    const todayDow = new Date().getDay();
+    const todayIdx = DAYS.findIndex((d) => d.dow === todayDow);
+    if (todayIdx >= 0) {
+      setGrid((prev) => {
+        if (prev[todayIdx].some(Boolean)) return prev; // already has slots — leave as is
+        return prev.map((day, i) =>
+          i === todayIdx ? HOURS.map((h) => h >= 9 && h < 17) : day
+        );
+      });
+    }
+  }, []);
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
