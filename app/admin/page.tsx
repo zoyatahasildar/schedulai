@@ -1,11 +1,11 @@
-// Analytics — real data computed from bookings, ScheduleAI design
+// Analytics — real data computed from bookings, ChronoAI design
 // Owned by: Member 5 / Lead
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { DashboardNav } from "@/components/DashboardNav";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { AnalyticsClient } from "@/components/dashboard/AnalyticsClient";
 
 const PALETTE = ["#6C63FF", "#00D4FF", "#EC4899", "#F59E0B", "#10B981", "#8B5CF6"];
@@ -58,7 +58,7 @@ export default async function AdminPage() {
   const dayCounts = [0, 0, 0, 0, 0, 0, 0];
 
   bookings.forEach((b) => {
-    dayCounts[new Date(b.startTime).getUTCDay()]++;
+    dayCounts[new Date(b.createdAt).getUTCDay()]++;
   });
 
   const order = [1, 2, 3, 4, 5, 6, 0];
@@ -77,7 +77,7 @@ export default async function AdminPage() {
     );
   });
 
-  const byType = [...typeMap.entries()]
+  const byType = Array.from(typeMap.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([name, value], i) => ({
@@ -141,21 +141,23 @@ export default async function AdminPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#E8EDF4]">
-      <DashboardNav user={user} />
-      <AnalyticsClient
-        kpis={{ total, active, revenue: Math.round(revenue), conversion }}
-        trend={trend}
-        byDay={byDay}
-        byType={byType}
-        heat={heat}
-        brief={{
-          thisWeek,
-          growth,
-          busiestDay: busiest.day,
-          topType: byType[0]?.name ?? null,
-        }}
-      />
+    <div className="min-h-screen flex bg-[#0b1020]">
+      <DashboardSidebar user={user} />
+      <main className="flex-1 min-w-0 bg-[#E8EDF4]">
+        <AnalyticsClient
+          kpis={{ total, active, revenue: Math.round(revenue), conversion }}
+          trend={trend}
+          byDay={byDay}
+          byType={byType}
+          heat={heat}
+          brief={{
+            thisWeek,
+            growth,
+            busiestDay: busiest.day,
+            topType: byType[0]?.name ?? null,
+          }}
+        />
+      </main>
     </div>
   );
 }

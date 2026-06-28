@@ -1,5 +1,5 @@
 // app/page.tsx
-// Landing page — public homepage (ScheduleAI)
+// Landing page — public homepage (ChronoAI)
 // Owned by: Lead
 "use client";
 
@@ -19,7 +19,7 @@ const HTML = `
         <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6c63ff] to-[#00d4ff] flex items-center justify-center shadow-lg shadow-[#6c63ff]/30">
           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
         </span>
-        <span class="text-[17px] font-extrabold tracking-tight">Schedule<span class="text-[#6c63ff]">AI</span></span>
+        <span class="text-[17px] font-extrabold tracking-tight">Chrono<span class="text-[#6c63ff]">AI</span></span>
       </a>
       <div class="hidden md:flex items-center gap-8 text-[14px] font-medium text-[#1a1a2e]/70">
         <a href="#features" class="hover:text-[#6c63ff] transition">Features</a>
@@ -27,8 +27,8 @@ const HTML = `
         <a href="#social" class="hover:text-[#6c63ff] transition">Customers</a>
       </div>
       <div class="flex items-center gap-3">
-        <a href="/login" class="hidden sm:inline text-[14px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition">Sign in</a>
-        <a href="/login" class="text-[14px] font-bold text-white bg-[#1a1a2e] px-4 py-2 rounded-xl hover:bg-[#16213e] transition shadow-sm">Get Started Free</a>
+        <a href="/login?mode=login" class="hidden sm:inline text-[14px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition">Log in</a>
+        <a href="/login?mode=signup" class="text-[14px] font-bold text-white bg-[#1a1a2e] px-4 py-2 rounded-xl hover:bg-[#16213e] transition shadow-sm">Get Started Free</a>
       </div>
     </nav>
   </header>
@@ -78,7 +78,7 @@ const HTML = `
         <span class="w-3 h-3 rounded-full bg-red-400/80"></span>
         <span class="w-3 h-3 rounded-full bg-amber-400/80"></span>
         <span class="w-3 h-3 rounded-full bg-emerald-400/80"></span>
-        <span class="ml-3 text-[11px] text-white/40 font-mono">app.scheduleai.com/dashboard</span>
+        <span class="ml-3 text-[11px] text-white/40 font-mono">app.chronoai.com/dashboard</span>
       </div>
       <div class="flex">
         <!-- SIDEBAR -->
@@ -87,7 +87,7 @@ const HTML = `
             <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#6c63ff] to-[#00d4ff] flex items-center justify-center">
               <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
             </span>
-            <span class="text-[13px] font-extrabold text-white">Schedule<span class="text-[#6c63ff]">AI</span></span>
+            <span class="text-[13px] font-extrabold text-white">Chrono<span class="text-[#6c63ff]">AI</span></span>
           </div>
           <a class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-white bg-[#6c63ff]/20">
             <span class="w-1.5 h-1.5 rounded-full bg-[#6c63ff]"></span> Dashboard
@@ -108,7 +108,7 @@ const HTML = `
           <!-- blue welcome banner -->
           <div class="rounded-xl bg-gradient-to-r from-[#3b5bdb] via-[#4263eb] to-[#00d4ff] p-4 flex items-center justify-between overflow-hidden">
             <div>
-              <p class="text-[11px] text-white/80">Welcome to ScheduleAI 👋</p>
+              <p class="text-[11px] text-white/80">Welcome to ChronoAI 👋</p>
               <p class="text-[18px] sm:text-[22px] font-extrabold text-white leading-tight">Your week, organized</p>
               <p class="text-[11px] text-white/70 mt-0.5">Here's what's happening with your bookings.</p>
             </div>
@@ -249,7 +249,7 @@ const HTML = `
     <div class="text-center max-w-2xl mx-auto reveal">
       <span class="text-[13px] font-bold uppercase tracking-widest text-[#6c63ff]">Everything you need</span>
       <h2 class="text-[34px] sm:text-[42px] font-extrabold tracking-tight mt-3">One platform. Every scheduling superpower.</h2>
-      <p class="text-[#1a1a2e]/55 mt-4 text-[16px]">From timezone-smart availability to AI booking — ScheduleAI replaces the tangle of tools you're juggling today.</p>
+      <p class="text-[#1a1a2e]/55 mt-4 text-[16px]">From timezone-smart availability to AI booking — ChronoAI replaces the tangle of tools you're juggling today.</p>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-14">
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#4f46e5;--cs:rgba(79,70,229,.38)">
@@ -268,10 +268,10 @@ const HTML = `
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#be185d;--cs:rgba(190,24,93,.36)">
         <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-pink-500">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
         </div>
-        <h3 class="font-bold text-[16px] transition-colors">Team Scheduling</h3>
-        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Round-robin and collective booking that routes guests to the right teammate.</p>
+        <h3 class="font-bold text-[16px] transition-colors">Personalized Booking Links</h3>
+        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Create multiple link types — 15, 30 or 60-min — each with its own page and purpose.</p>
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#047857;--cs:rgba(4,120,87,.36)">
         <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-emerald-500">
@@ -279,13 +279,6 @@ const HTML = `
         </div>
         <h3 class="font-bold text-[16px] transition-colors">Paid Bookings</h3>
         <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Charge for sessions and packages with 0% booking commission. Keep what you earn.</p>
-      </div>
-      <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#6d28d9;--cs:rgba(109,40,217,.36)">
-        <div class="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-violet-500">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </div>
-        <h3 class="font-bold text-[16px] transition-colors">Custom Branding</h3>
-        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Your logo, colors, and custom domain. Embed the booker right on your site.</p>
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#be123c;--cs:rgba(190,18,60,.36)">
         <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-rose-500">
@@ -300,6 +293,13 @@ const HTML = `
         </div>
         <h3 class="font-bold text-[16px] transition-colors">Analytics Dashboard</h3>
         <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">AI weekly reports on revenue, busiest hours, and your best-performing events.</p>
+      </div>
+      <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#b45309;--cs:rgba(180,83,9,.36)">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-amber-500">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h3 class="font-bold text-[16px] transition-colors">No Double Bookings</h3>
+        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Real-time conflict checking guarantees a slot is never handed out twice.</p>
       </div>
     </div>
   </section>
@@ -328,9 +328,9 @@ const HTML = `
         <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6c63ff] to-[#00d4ff] flex items-center justify-center">
           <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
         </span>
-        <span class="font-extrabold">Schedule<span class="text-[#6c63ff]">AI</span></span>
+        <span class="font-extrabold">Chrono<span class="text-[#6c63ff]">AI</span></span>
       </div>
-      <p class="text-[13px] text-[#1a1a2e]/45">© 2026 ScheduleAI · Smart Scheduling, Powered by AI</p>
+      <p class="text-[13px] text-[#1a1a2e]/45">© 2026 ChronoAI · Smart Scheduling, Powered by AI</p>
       <div class="flex gap-5 text-[13px] text-[#1a1a2e]/50 font-medium">
         <a href="#" class="hover:text-[#6c63ff]">Privacy</a>
         <a href="#" class="hover:text-[#6c63ff]">Terms</a>

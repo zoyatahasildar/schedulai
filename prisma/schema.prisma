@@ -73,8 +73,9 @@ model Booking {
 
   // Relations
   eventTypeId String
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Restrict)
 
+  @@index([startTime, endTime])
   @@map("bookings")
 }
 
@@ -91,6 +92,7 @@ model Availability {
   userId    String
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, dayOfWeek])
   @@map("availability")
 }
 

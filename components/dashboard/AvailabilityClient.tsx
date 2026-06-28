@@ -156,15 +156,15 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
   });
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-8">
+    <div className="min-h-screen bg-[#0b1020] text-white px-6 py-8 md:px-8">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-gray-900">Availability</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Click the slots you&apos;re free, then save. Guests can only book inside these hours (UTC).</p>
+          <h1 className="text-[28px] font-bold text-white">Availability</h1>
+          <p className="text-[14px] text-white/50 mt-1">Click the slots you&apos;re free, then save. Guests can only book inside these hours (UTC).</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={clearAll} className="px-4 py-2.5 bg-gray-100 text-gray-600 text-[13px] font-semibold rounded-xl hover:bg-gray-200 transition-colors">Clear</button>
+          <button onClick={clearAll} className="px-4 py-2.5 bg-white/[0.06] text-white/65 text-[13px] font-semibold rounded-xl hover:bg-white/10 transition-colors">Clear</button>
           <button onClick={save} disabled={saving}
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
@@ -173,7 +173,7 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
         </div>
       </div>
 
-      {error && <p className="text-[13px] text-red-500 mb-4">{error}</p>}
+      {error && <p className="text-[13px] text-red-400 mb-4">{error}</p>}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -182,11 +182,11 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
           { label: "Days Enabled", value: daysEnabled, color: "#10B981", bg: "#ECFDF5" },
           { label: "Hours / Week", value: availableHours, color: "#EC4899", bg: "#FDE8F4" },
         ].map((s, i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 flex items-center gap-4">
+          <div key={i} className="bg-[#131a2e] rounded-2xl p-4 border border-white/[0.06] flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl flex-shrink-0" style={{ backgroundColor: s.bg }} />
             <div>
               <p className="text-[22px] font-bold leading-none" style={{ ...MONO, color: s.color }}>{s.value}</p>
-              <p className="text-[12px] text-gray-500 mt-0.5">{s.label}</p>
+              <p className="text-[12px] text-white/50 mt-0.5">{s.label}</p>
             </div>
           </div>
         ))}
@@ -194,24 +194,24 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Grid */}
-        <div className="xl:col-span-3 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] overflow-hidden">
-          <div className="p-4 border-b border-gray-50 flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-[12px] font-semibold"><span className="w-3 h-3 rounded bg-[#6C63FF]/20 border border-[#6C63FF]/30 inline-block" />Available</span>
-            <span className="flex items-center gap-1.5 text-[12px] font-semibold"><span className="w-3 h-3 rounded bg-gray-100 inline-block" />Unavailable</span>
-            <span className="ml-auto text-[12px] text-gray-400">Click a slot to toggle</span>
+        <div className="xl:col-span-3 bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] overflow-hidden">
+          <div className="p-4 border-b border-white/[0.06] flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold"><span className="w-3 h-3 rounded bg-[#10B981]/20 border border-[#10B981]/30 inline-block" />Available</span>
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold"><span className="w-3 h-3 rounded bg-white/[0.06] inline-block" />Unavailable</span>
+            <span className="ml-auto text-[12px] text-white/40">Click a slot to toggle</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr>
-                  <th className="w-16 py-3 px-3 text-left"><span className="text-[11px] font-bold text-gray-400 uppercase" style={MONO}>Time</span></th>
+                  <th className="w-16 py-3 px-3 text-left"><span className="text-[11px] font-bold text-white/40 uppercase" style={MONO}>Time</span></th>
                   {DAYS.map((d, di) => {
                     const wd = WEEK_DATES[di];
                     return (
                       <th key={d.label} className="py-3 px-1 text-center">
-                        <p className={`text-[10px] font-bold uppercase ${wd.isToday ? "text-[#6C63FF]" : "text-gray-400"}`} style={MONO}>{d.label}</p>
-                        <p className={`text-[18px] font-bold leading-tight ${wd.isToday ? "text-[#6C63FF]" : "text-gray-800"}`}>{wd.dateNum}</p>
-                        <p className={`text-[10px] ${wd.isToday ? "text-[#6C63FF]" : "text-gray-400"}`}>{wd.month}</p>
+                        <p className={`text-[10px] font-bold uppercase ${wd.isToday ? "text-[#6C63FF]" : "text-white/40"}`} style={MONO}>{d.label}</p>
+                        <p className={`text-[18px] font-bold leading-tight ${wd.isToday ? "text-[#6C63FF]" : "text-white"}`}>{wd.dateNum}</p>
+                        <p className={`text-[10px] ${wd.isToday ? "text-[#6C63FF]" : "text-white/40"}`}>{wd.month}</p>
                       </th>
                     );
                   })}
@@ -219,14 +219,14 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
               </thead>
               <tbody>
                 {HOURS.map((hour, hi) => (
-                  <tr key={hour} className="border-t border-gray-50">
-                    <td className="py-1.5 px-3 text-[11px] text-gray-400 font-medium whitespace-nowrap" style={MONO}>{hourLabel(hour)}</td>
+                  <tr key={hour} className="border-t border-white/[0.06]">
+                    <td className="py-1.5 px-3 text-[11px] text-white/40 font-medium whitespace-nowrap" style={MONO}>{hourLabel(hour)}</td>
                     {DAYS.map((d, di) => {
                       const on = grid[di][hi];
                       return (
                         <td key={d.label} className="py-1 px-1">
                           <button onClick={() => toggle(di, hi)}
-                            className={`w-full h-8 rounded-lg transition-all duration-150 ${on ? "bg-[#6C63FF]/20 hover:bg-[#6C63FF]/35 border border-[#6C63FF]/30" : "bg-gray-100 hover:bg-gray-200 border border-transparent"}`} />
+                            className={`w-full h-8 rounded-lg transition-all duration-150 ${on ? "bg-[#10B981]/20 hover:bg-[#10B981]/35 border border-[#10B981]/30" : "bg-white/[0.06] hover:bg-white/10 border border-transparent"}`} />
                         </td>
                       );
                     })}
@@ -239,32 +239,32 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
 
         {/* Sidebar */}
         <div className="space-y-5">
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-5">
-            <h3 className="text-[14px] font-bold text-gray-900 mb-4">Quick Presets</h3>
+          <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-5">
+            <h3 className="text-[14px] font-bold text-white mb-4">Quick Presets</h3>
             <div className="space-y-2">
               {PRESETS.map(({ icon: Icon, label, desc, color, from, to }) => (
                 <button key={label} onClick={() => applyPreset(from, to)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-transparent hover:border-gray-100 hover:bg-gray-50 transition-all text-left">
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-transparent hover:border-white/10 hover:bg-white/[0.05] transition-all text-left">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}18` }}>
                     <Icon className="w-4 h-4" style={{ color }} strokeWidth={1.75} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-gray-800">{label}</p>
-                    <p className="text-[11px] text-gray-400">{desc} · Mon–Fri</p>
+                    <p className="text-[13px] font-semibold text-white">{label}</p>
+                    <p className="text-[11px] text-white/40">{desc} · Mon–Fri</p>
                   </div>
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-gray-400 mt-3">Presets fill the grid — review and hit Save.</p>
+            <p className="text-[11px] text-white/40 mt-3">Presets fill the grid — review and hit Save.</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-5">
-            <h3 className="text-[14px] font-bold text-gray-900 mb-3">Weekly Summary</h3>
+          <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-5">
+            <h3 className="text-[14px] font-bold text-white mb-3">Weekly Summary</h3>
             <div className="space-y-2">
               {summary.map((s) => (
                 <div key={s.label} className="flex items-center justify-between">
-                  <p className="text-[12px] font-semibold text-gray-600">{s.label}</p>
-                  <span className={`text-[12px] font-bold px-2.5 py-1 rounded-lg ${s.text === "Off" ? "bg-gray-100 text-gray-400" : "bg-[#F0EFFF] text-[#6C63FF]"}`} style={MONO}>{s.text}</span>
+                  <p className="text-[12px] font-semibold text-white/65">{s.label}</p>
+                  <span className={`text-[12px] font-bold px-2.5 py-1 rounded-lg ${s.text === "Off" ? "bg-white/[0.06] text-white/40" : "bg-[#10B981]/15 text-[#10B981]"}`} style={MONO}>{s.text}</span>
                 </div>
               ))}
             </div>
