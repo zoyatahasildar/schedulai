@@ -1,5 +1,5 @@
 // app/dashboard/availability/page.tsx
-// Availability — real weekly schedule editor, ScheduleAI design
+// Availability — real weekly schedule editor, ChronoAI design
 // Owned by: Lead / Member 3
 
 import { getServerSession } from "next-auth";
