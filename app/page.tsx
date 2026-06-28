@@ -3,7 +3,8 @@
 // Owned by: Lead
 
 import Link from "next/link";
-import { Calendar, Clock, Zap, Shield, Users, BarChart3 } from "lucide-react";
+import { Calendar, Zap } from "lucide-react";
+import FeatureCards from "@/components/FeatureCards";
 
 export default function LandingPage() {
   return (
@@ -16,7 +17,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-violet-700">SchedulAI</span>
+              <span className="text-xl font-bold text-violet-700">ChronoAI</span>
             </div>
             <div className="flex items-center gap-4">
               <Link
@@ -73,57 +74,13 @@ export default function LandingPage() {
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
           Everything you need to schedule smarter
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            {
-              icon: Calendar,
-              title: "Smart Availability",
-              desc: "Set your weekly schedule once. SchedulAI handles timezone conversions automatically.",
-            },
-            {
-              icon: Zap,
-              title: "AI Chatbot Assistant",
-              desc: 'Guests can ask "When are you free?" and get instant answers powered by Gemini AI.',
-            },
-            {
-              icon: Clock,
-              title: "Instant Booking",
-              desc: "Guests pick a slot, fill in their details, and get a confirmation email instantly.",
-            },
-            {
-              icon: Shield,
-              title: "No Double Bookings",
-              desc: "Real-time conflict checking ensures your calendar is always accurate.",
-            },
-            {
-              icon: Users,
-              title: "Multiple Event Types",
-              desc: "Create 30-min calls, 1-hour consultations, or custom meeting types.",
-            },
-            {
-              icon: BarChart3,
-              title: "AI Analytics",
-              desc: "Weekly AI-generated reports summarizing your bookings and peak hours.",
-            },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div
-              key={title}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-violet-100 hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center mb-4">
-                <Icon className="w-6 h-6 text-violet-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
+        <FeatureCards />
       </section>
 
       {/* Footer */}
       <footer className="border-t bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>© 2024 SchedulAI — Smart Scheduling, Powered by AI</p>
+          <p>© 2024 ChronoAI — Smart Scheduling, Powered by AI</p>
         </div>
       </footer>
     </div>
