@@ -27,8 +27,8 @@ const HTML = `
         <a href="#social" class="hover:text-[#6c63ff] transition">Customers</a>
       </div>
       <div class="flex items-center gap-3">
-        <a href="/login" class="hidden sm:inline text-[14px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition">Sign in</a>
-        <a href="/login" class="text-[14px] font-bold text-white bg-[#1a1a2e] px-4 py-2 rounded-xl hover:bg-[#16213e] transition shadow-sm">Get Started Free</a>
+        <a href="/login?mode=login" class="hidden sm:inline text-[14px] font-semibold text-[#1a1a2e]/70 hover:text-[#1a1a2e] transition">Log in</a>
+        <a href="/login?mode=signup" class="text-[14px] font-bold text-white bg-[#1a1a2e] px-4 py-2 rounded-xl hover:bg-[#16213e] transition shadow-sm">Get Started Free</a>
       </div>
     </nav>
   </header>
@@ -268,10 +268,10 @@ const HTML = `
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#be185d;--cs:rgba(190,24,93,.36)">
         <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-pink-500">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
         </div>
-        <h3 class="font-bold text-[16px] transition-colors">Team Scheduling</h3>
-        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Round-robin and collective booking that routes guests to the right teammate.</p>
+        <h3 class="font-bold text-[16px] transition-colors">Personalized Booking Links</h3>
+        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Create multiple link types — 15, 30 or 60-min — each with its own page and purpose.</p>
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#047857;--cs:rgba(4,120,87,.36)">
         <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-emerald-500">
@@ -282,10 +282,10 @@ const HTML = `
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#6d28d9;--cs:rgba(109,40,217,.36)">
         <div class="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-violet-500">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6M3 22v-6h6M3.5 9a9 9 0 0 1 14.85-3.36L21 8M21 15a9 9 0 0 1-14.85 3.36L3 16"/></svg>
         </div>
-        <h3 class="font-bold text-[16px] transition-colors">Custom Branding</h3>
-        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Your logo, colors, and custom domain. Embed the booker right on your site.</p>
+        <h3 class="font-bold text-[16px] transition-colors">2-Way Calendar Sync</h3>
+        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Sync with Google, Outlook &amp; iCal so you're never double-booked across calendars.</p>
       </div>
       <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#be123c;--cs:rgba(190,18,60,.36)">
         <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-rose-500">
@@ -300,6 +300,13 @@ const HTML = `
         </div>
         <h3 class="font-bold text-[16px] transition-colors">Analytics Dashboard</h3>
         <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">AI weekly reports on revenue, busiest hours, and your best-performing events.</p>
+      </div>
+      <div class="feat-card reveal group rounded-2xl bg-white p-6 border border-black/5 shadow-sm" style="--c:#b45309;--cs:rgba(180,83,9,.36)">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition text-amber-500">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h3 class="font-bold text-[16px] transition-colors">No Double Bookings</h3>
+        <p class="text-[13.5px] text-[#1a1a2e]/55 mt-1.5 leading-relaxed">Real-time conflict checking guarantees a slot is never handed out twice.</p>
       </div>
     </div>
   </section>

@@ -1,22 +1,28 @@
 // app/login/page.tsx
 // Owned by: Lead (Auth module)
-// Login page — Google OAuth only
+// Login + Sign up — Google OAuth (one button serves both new and returning users)
 
 "use client";
 
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Calendar, Chrome } from "lucide-react";
+import { Zap, Chrome, Check } from "lucide-react";
 
 export default function LoginPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"signup" | "login">("signup");
 
   useEffect(() => {
     if (session) router.push("/dashboard");
   }, [session, router]);
+
+  useEffect(() => {
+    const m = new URLSearchParams(window.location.search).get("mode");
+    if (m === "login") setMode("login");
+  }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -29,25 +35,31 @@ export default function LoginPage() {
     }
   };
 
+  const isSignup = mode === "signup";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl border border-violet-100 p-8 w-full max-w-md">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center">
-            <Calendar className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-violet-700">ChronoAI</span>
+        <div className="flex items-center justify-center gap-2.5 mb-8">
+          <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
+            <Zap className="w-5 h-5 text-white fill-white" />
+          </span>
+          <span className="text-2xl font-bold text-gray-900">
+            Schedule<span className="text-[#6C63FF]">AI</span>
+          </span>
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-          Welcome back
+          {isSignup ? "Create your free account" : "Welcome back"}
         </h1>
         <p className="text-gray-500 text-center mb-8 text-sm">
-          Sign in to manage your schedule and bookings
+          {isSignup
+            ? "Sign up in one click — no password needed."
+            : "Log in to manage your schedule and bookings."}
         </p>
 
-        {/* Google Sign In */}
+        {/* Google button (same action for sign up + log in) */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
@@ -58,11 +70,47 @@ export default function LoginPage() {
           ) : (
             <Chrome className="w-5 h-5" />
           )}
-          {loading ? "Signing in..." : "Continue with Google"}
+          {loading ? "Please wait…" : "Continue with Google"}
         </button>
 
-        <p className="text-xs text-gray-400 text-center mt-6">
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+        {/* Free perks (sign-up only) */}
+        {isSignup && (
+          <ul className="mt-5 space-y-1.5">
+            {[
+              "Free forever — no credit card",
+              "Unlimited booking links",
+              "AI assistant included",
+            ].map((p) => (
+              <li key={p} className="flex items-center gap-2 text-[13px] text-gray-600">
+                <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" /> {p}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Switch between sign up / log in */}
+        <p className="text-[13px] text-gray-500 text-center mt-6">
+          {isSignup ? (
+            <>
+              Already have an account?{" "}
+              <button onClick={() => setMode("login")} className="font-semibold text-[#6C63FF] hover:underline">
+                Log in
+              </button>
+            </>
+          ) : (
+            <>
+              New to ScheduleAI?{" "}
+              <button onClick={() => setMode("signup")} className="font-semibold text-[#6C63FF] hover:underline">
+                Create a free account
+              </button>
+            </>
+          )}
+        </p>
+
+        <p className="text-xs text-gray-400 text-center mt-4">
+          {isSignup
+            ? "Continuing with Google creates your account automatically."
+            : "By continuing you agree to our Terms & Privacy Policy."}
         </p>
       </div>
     </div>

@@ -1,11 +1,11 @@
 // app/dashboard/layout.tsx
-// Protected layout — only authenticated users can access
+// Protected layout — sidebar shell (dark redesign)
 // Owned by: Lead
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { DashboardNav } from "@/components/DashboardNav";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 
 export default async function DashboardLayout({
   children,
@@ -19,9 +19,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#E8EDF4]">
-      <DashboardNav user={session.user} />
-      <main>{children}</main>
+    <div className="min-h-screen flex bg-[#0b1020]">
+      <DashboardSidebar user={session.user} />
+      <main className="flex-1 min-w-0">{children}</main>
     </div>
   );
 }

@@ -29,6 +29,7 @@ export default async function EventTypesPage() {
 
   return (
     <EventTypesClient
+      userId={user.id}
       initialEvents={data}
       username={user.username ?? null}
       appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ""}

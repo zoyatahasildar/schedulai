@@ -1,5 +1,5 @@
 // components/DashboardNav.tsx
-// Dashboard top navigation — ScheduleAI design
+// Dashboard top navigation — ScheduleAI design, with in-app notification bell
 // Owned by: Lead
 
 "use client";
@@ -8,23 +8,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-  Zap,
-  LayoutDashboard,
-  CalendarDays,
-  BookOpen,
-  Clock,
-  BarChart3,
-  Settings,
-  LogOut,
+  Zap, LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import Image from "next/image";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 
 interface DashboardNavProps {
-  user: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
+  user: { name?: string | null; email?: string | null; image?: string | null };
 }
 
 const NAV_ITEMS = [
@@ -38,12 +28,7 @@ const NAV_ITEMS = [
 
 function initials(name?: string | null) {
   if (!name) return "U";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 }
 
 export function DashboardNav({ user }: DashboardNavProps) {
@@ -54,9 +39,9 @@ export function DashboardNav({ user }: DashboardNavProps) {
       <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-2.5 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
             <Zap className="w-4 h-4 text-white fill-white" />
-          </div>
+          </span>
           <span className="text-[15px] font-bold text-gray-900 tracking-tight">
             Schedule<span className="text-[#6C63FF]">AI</span>
           </span>
@@ -66,8 +51,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
         <div className="flex items-stretch h-16">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const isActive =
-              pathname === href ||
-              (href !== "/dashboard" && pathname.startsWith(href));
+              pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
             return (
               <Link
                 key={href}
@@ -86,32 +70,27 @@ export function DashboardNav({ user }: DashboardNavProps) {
           })}
         </div>
 
-        {/* Right — user + logout */}
-        <div className="flex items-center gap-2">
+        {/* Right — notifications + user + logout */}
+        <div className="flex items-center gap-1.5">
+          <NotificationBell />
+
           <Link
             href="/dashboard/settings"
             className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 transition-all"
           >
             {user.image ? (
-              <Image
-                src={user.image}
-                alt={user.name ?? "User"}
-                width={32}
-                height={32}
-                className="rounded-full"
-              />
+              <Image src={user.image} alt={user.name ?? "User"} width={32} height={32} className="rounded-full" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
+              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
                 {initials(user.name)}
-              </div>
+              </span>
             )}
             <div className="hidden md:block text-left">
-              <p className="text-[13px] font-semibold text-gray-800 leading-tight">
-                {user.name ?? "Your account"}
-              </p>
+              <p className="text-[13px] font-semibold text-gray-800 leading-tight">{user.name ?? "Your account"}</p>
               <p className="text-[11px] text-gray-400 leading-tight">Free plan</p>
             </div>
           </Link>
+
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             title="Log out"
