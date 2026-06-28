@@ -184,11 +184,20 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
       {/* Small Calendar – left corner */}
       <div className="mb-4">
         <div className="inline-block bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-4 w-56">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1">
             <button onClick={prevCalMonth} className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors text-sm">&#8249;</button>
-            <span className="text-[12px] font-bold text-gray-800">{CAL_MONTH_NAMES[calMonth]} {calYear}</span>
+            <div className="text-center">
+              <span className="text-[12px] font-bold text-gray-800">{CAL_MONTH_NAMES[calMonth]} {calYear}</span>
+              {(calYear !== new Date().getFullYear() || calMonth !== new Date().getMonth()) && (
+                <button onClick={() => { setCalYear(new Date().getFullYear()); setCalMonth(new Date().getMonth()); }}
+                  className="block text-[9px] text-[#6C63FF] hover:underline mx-auto leading-tight">
+                  Go to today
+                </button>
+              )}
+            </div>
             <button onClick={nextCalMonth} className="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors text-sm">&#8250;</button>
           </div>
+          <div className="mb-1" />
           <div className="grid grid-cols-7 mb-1">
             {CAL_DAY_LABELS.map(d => (
               <div key={d} className="text-center text-[8px] font-bold text-gray-400 uppercase">{d}</div>
@@ -205,13 +214,11 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
                 cells.push(<div key={`e${i}`} />);
               }
               for (let d = 1; d <= daysInMonth; d++) {
-                const dow = (firstDay + d - 1) % 7;
                 const isToday = isCurrentMonth && today.getDate() === d;
-                const avail = dowAvailable(dow);
                 cells.push(
                   <div key={d} className="flex items-center justify-center">
                     <span className={`text-[9px] w-4 h-4 flex items-center justify-center rounded-full
-                      ${isToday ? "bg-[#6C63FF] text-white font-bold" : avail ? "text-[#6C63FF] bg-[#F0EFFF] font-semibold" : "text-gray-400"}`}>
+                      ${isToday ? "bg-[#6C63FF] text-white font-bold" : "text-gray-500"}`}>
                       {d}
                     </span>
                   </div>
@@ -222,7 +229,6 @@ export function AvailabilityClient({ initial }: { initial: { dayOfWeek: number; 
           </div>
           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100">
             <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full bg-[#6C63FF] inline-block" />Today</span>
-            <span className="flex items-center gap-1 text-[9px] text-gray-500"><span className="w-2.5 h-2.5 rounded-full bg-[#F0EFFF] inline-block" />Available</span>
           </div>
         </div>
       </div>
