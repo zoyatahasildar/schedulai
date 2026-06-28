@@ -11,6 +11,9 @@ import {
   User, Bell, Link2, Shield, CreditCard, Palette, Globe,
   Check, Copy, ExternalLink, Mail, Clock, ChevronRight, LogOut, Save, Loader2, AlertCircle,
 } from "lucide-react";
+import IntegrationsSection from "./IntegrationsSection";
+import BillingSection from "./BillingSection";
+import AppearanceSection from "./AppearanceSection";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
 
@@ -65,9 +68,9 @@ export default function SettingsPage() {
           {tab === "booking-link" && <BookingLinkSection user={user} origin={origin} update={update} />}
           {tab === "notifications" && <NotificationsSection />}
           {tab === "security" && <AccountSection user={user} />}
-          {tab === "integrations" && <Placeholder title="Integrations" desc="Connect Google / Outlook calendars and other tools." />}
-          {tab === "billing" && <Placeholder title="Billing" desc="Manage your plan and payment methods." />}
-          {tab === "appearance" && <Placeholder title="Appearance" desc="Theme, language, and display preferences." />}
+          {tab === "integrations" && <IntegrationsSection />}
+          {tab === "billing" && <BillingSection />}
+          {tab === "appearance" && <AppearanceSection />}
         </div>
       </div>
     </div>
@@ -245,22 +248,6 @@ function AccountSection({ user }: { user: any }) {
           className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 text-[13px] font-bold rounded-xl hover:bg-red-100 transition-colors">
           <LogOut className="w-4 h-4" /> Log out
         </button>
-      </div>
-    </div>
-  );
-}
-
-function Placeholder({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-[20px] font-bold text-gray-900">{title}</h2>
-        <p className="text-[14px] text-gray-500 mt-1">{desc}</p>
-      </div>
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-12 flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#F0EFFF] flex items-center justify-center mb-4"><Palette className="w-8 h-8 text-[#6C63FF]" strokeWidth={1.5} /></div>
-        <p className="text-[16px] font-bold text-gray-800 mb-2">{title} — coming soon</p>
-        <p className="text-[13px] text-gray-400 max-w-xs">This section isn&apos;t wired to a backend yet, so it&apos;s hidden rather than showing placeholder data.</p>
       </div>
     </div>
   );
