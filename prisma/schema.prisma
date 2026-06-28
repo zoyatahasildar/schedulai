@@ -29,6 +29,8 @@ model User {
   sessions      Session[]
   eventTypes    EventType[]
   availability  Availability[]
+  preferences   UserPreference?
+  notifications Notification[]
 
   @@map("users")
 }
@@ -65,6 +67,7 @@ model Booking {
   notes       String?
   status      BookingStatus @default(PENDING)
   meetingLink String?       // optional video call link
+  reminderSent Boolean      @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -139,4 +142,47 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+}
+
+enum ReminderTiming {
+  MIN_15
+  HOUR_1
+  HOURS_24
+  BOTH
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_CANCELLED
+  BOOKING_RESCHEDULED
+}
+
+model UserPreference {
+  id                String         @id @default(cuid())
+  userId            String         @unique
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  emailOnBooking    Boolean        @default(true)
+  emailOnCancel     Boolean        @default(true)
+  emailOnReschedule Boolean        @default(true)
+  emailReminder     Boolean        @default(true)
+  reminderTiming    ReminderTiming @default(HOURS_24)
+
+  @@map("user_preferences")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        NotificationType
+  title       String
+  message     String           @db.Text
+  link        String?
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, isRead]) // Fast queries for unread count
+  @@map("notifications")
 }

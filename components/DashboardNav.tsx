@@ -7,16 +7,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import {
-  Zap,
-  LayoutDashboard,
-  CalendarDays,
-  BookOpen,
-  Clock,
-  BarChart3,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Zap, LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut } from "lucide-react";
 import Image from "next/image";
 
 interface DashboardNavProps {
@@ -72,9 +63,8 @@ export function DashboardNav({ user }: DashboardNavProps) {
               <Link
                 key={href}
                 href={href}
-                className={`relative flex items-center gap-2 px-4 text-[13px] font-medium transition-all duration-150 ${
-                  isActive ? "text-[#6C63FF]" : "text-gray-500 hover:text-gray-800"
-                }`}
+                className={`relative flex items-center gap-2 px-4 text-[13px] font-medium transition-all duration-150 ${isActive ? "text-[#6C63FF]" : "text-gray-500 hover:text-gray-800"
+                  }`}
               >
                 <Icon className="w-4 h-4" strokeWidth={isActive ? 2 : 1.75} />
                 <span className="hidden md:inline">{label}</span>
@@ -88,6 +78,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
 
         {/* Right — user + logout */}
         <div className="flex items-center gap-2">
+
           <Link
             href="/dashboard/settings"
             className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 transition-all"
