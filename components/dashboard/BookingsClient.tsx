@@ -105,8 +105,8 @@ export function BookingsClient({ initialBookings }: { initialBookings: Booking[]
         bookingId: rescheduleModalBooking.id,
         previousStartTime: rescheduleModalBooking.startTime,
         previousEndTime: oldEnd,
-        // Since we are not changing backend logic, we send the notification assuming it works 
-        // (the real backend would update DB first).
+        newStartTime: newStartTime,
+        newEndTime: newEnd,
       }),
     });
 

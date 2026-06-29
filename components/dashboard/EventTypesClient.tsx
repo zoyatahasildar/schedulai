@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus, Clock, Link2, Edit2, Trash2, Copy, ToggleLeft, ToggleRight,
-  Calendar, TrendingUp, BarChart3, Share2, Loader2,
+  Calendar, TrendingUp, BarChart3, Share2, Loader2, ExternalLink,
 } from "lucide-react";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
@@ -48,6 +48,13 @@ function EventModal({ userId, initial, onClose, onSaved }: {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState("");
 
+  // Availability editing (toggle slots on/off and save to the weekly schedule)
+  const [editMode, setEditMode] = useState(false);
+  const [onTimes, setOnTimes] = useState<Set<string>>(new Set());
+  const [savingAvail, setSavingAvail] = useState(false);
+  const [availMsg, setAvailMsg] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const today = new Date();
   const [calYear, setCalYear] = useState(today.getUTCFullYear());
   const [calMonth, setCalMonth] = useState(today.getUTCMonth());
@@ -83,7 +90,19 @@ function EventModal({ userId, initial, onClose, onSaved }: {
     return () => {
       active = false;
     };
-  }, [showPreview, previewDate, duration]);
+  }, [showPreview, previewDate, duration, refreshKey]);
+
+  // Whenever slots (re)load, seed the editable "on" set from currently-available times.
+  // Booked times count as "on" too, so saving never punches a gap around a booking.
+  useEffect(() => {
+    setOnTimes(
+      new Set(
+        slots
+          .filter((s) => s.status === "available" || s.status === "booked")
+          .map((s) => s.time)
+      )
+    );
+  }, [slots]);
 
   const firstDay = new Date(Date.UTC(calYear, calMonth, 1)).getUTCDay();
   const totalDays = new Date(Date.UTC(calYear, calMonth + 1, 0)).getUTCDate();
@@ -163,6 +182,90 @@ function EventModal({ userId, initial, onClose, onSaved }: {
       setDesc((prev) => prev + "\n" + suggestionText);
     } else {
       setDesc(suggestionText);
+    }
+  };
+
+  // ── Availability editing ──────────────────────────────
+  // Toggle a 30-min slot on/off (booked slots can't be changed).
+  const toggleSlot = (slot: any) => {
+    if (slot.status === "booked") return;
+    setOnTimes((prev) => {
+      const next = new Set(prev);
+      next.has(slot.time) ? next.delete(slot.time) : next.add(slot.time);
+      return next;
+    });
+  };
+
+  // Merge consecutive 30-min "HH:MM" starts into [startTime, endTime] windows.
+  const mergeWindows = (times: string[]): { startTime: string; endTime: string }[] => {
+    const mins = times
+      .map((t) => {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      })
+      .sort((a, b) => a - b);
+
+    const fmt = (x: number) => {
+      const v = x >= 1440 ? 1439 : x;
+      return `${String(Math.floor(v / 60)).padStart(2, "0")}:${String(v % 60).padStart(2, "0")}`;
+    };
+
+    const out: { startTime: string; endTime: string }[] = [];
+    let start: number | null = null;
+    let prev = 0;
+    for (const mn of mins) {
+      if (start === null) { start = mn; prev = mn; continue; }
+      if (mn === prev + 30) { prev = mn; continue; }
+      out.push({ startTime: fmt(start), endTime: fmt(prev + 30) });
+      start = mn; prev = mn;
+    }
+    if (start !== null) out.push({ startTime: fmt(start), endTime: fmt(prev + 30) });
+    return out;
+  };
+
+  const saveAvailability = async () => {
+    setSavingAvail(true);
+    setAvailMsg("");
+    try {
+      const dow = new Date(`${previewDate}T00:00:00Z`).getUTCDay();
+      const windows = mergeWindows([...onTimes]);
+
+      // Keep the other weekdays untouched (POST replaces the whole schedule).
+      const existingRes = await fetch(`/api/availability?userId=${userId}`);
+      const existingJson = await existingRes.json();
+      const existing = existingJson.data ?? [];
+      const others = existing
+        .filter((a: any) => a.dayOfWeek !== dow)
+        .map((a: any) => ({
+          dayOfWeek: a.dayOfWeek,
+          startTime: a.startTime,
+          endTime: a.endTime,
+          isActive: true,
+        }));
+
+      const newForDay = windows.map((w) => ({
+        dayOfWeek: dow,
+        startTime: w.startTime,
+        endTime: w.endTime,
+        isActive: true,
+      }));
+
+      const res = await fetch("/api/availability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ availability: [...others, ...newForDay] }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save availability");
+
+      setEditMode(false);
+      setAvailMsg("Availability updated ✓");
+      setRefreshKey((k) => k + 1); // re-pull the preview from the server
+      setTimeout(() => setAvailMsg(""), 2500);
+    } catch (e) {
+      setAvailMsg(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSavingAvail(false);
     }
   };
 
@@ -307,11 +410,43 @@ function EventModal({ userId, initial, onClose, onSaved }: {
                     <h5 className="text-[11px] font-bold text-white/60">
                       Time Slots ({previewDate})
                     </h5>
+                    {!editMode ? (
+                      <button
+                        type="button"
+                        onClick={() => { setEditMode(true); setAvailMsg(""); }}
+                        className="text-[10px] font-bold uppercase tracking-wider text-[#7C3AED] hover:text-[#7C3AED]/80 transition-colors"
+                      >
+                        ✏️ Edit availability
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={saveAvailability}
+                          disabled={savingAvail}
+                          className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors disabled:opacity-60"
+                        >
+                          {savingAvail && <Loader2 className="w-3 h-3 animate-spin" />} Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setEditMode(false); setRefreshKey((k) => k + 1); }}
+                          className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-white/[0.06] text-white/60 hover:bg-white/10 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex gap-2 text-[8px] font-bold uppercase tracking-wider text-white/40">
-                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Free</span>
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {editMode ? "On" : "Free"}</span>
                       <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Booked</span>
                       <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/25" /> Off</span>
                     </div>
+                    {editMode && <span className="text-[9px] text-[#7C3AED] font-semibold">Tap slots to toggle</span>}
+                    {availMsg && <span className="text-[9px] text-emerald-400 font-semibold">{availMsg}</span>}
                   </div>
 
                   {slotsLoading ? (
@@ -325,27 +460,38 @@ function EventModal({ userId, initial, onClose, onSaved }: {
                   ) : (
                     <div className="grid grid-cols-4 gap-1.5 max-h-[160px] overflow-y-auto pr-1">
                       {slots.map((slot) => {
-                        const isAvailable = slot.status === "available";
                         const isBooked = slot.status === "booked";
-                        
+                        // In edit mode, "available" reflects the toggled set; otherwise the server status.
+                        const isAvailable = editMode ? onTimes.has(slot.time) : slot.status === "available";
+
                         return (
                           <div key={slot.time} className="relative group/slot">
                             <button
                               type="button"
                               onClick={() => {
-                                if (isAvailable) {
+                                if (editMode) {
+                                  toggleSlot(slot);
+                                } else if (isAvailable) {
                                   addSuggestedTime(slot);
                                 }
                               }}
-                              disabled={!isAvailable}
-                              title={isBooked && slot.booking ? `Booked by ${slot.booking.guestName}` : undefined}
+                              disabled={editMode ? isBooked : !isAvailable}
+                              title={
+                                isBooked && slot.booking
+                                  ? `Booked by ${slot.booking.guestName}`
+                                  : editMode
+                                    ? "Tap to toggle availability"
+                                    : undefined
+                              }
                               className={`
                                 w-full py-1.5 text-center text-[10px] font-bold rounded-lg border transition-all relative
-                                ${isAvailable
-                                  ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95 cursor-pointer"
-                                  : isBooked
-                                    ? "border-rose-500/20 bg-rose-500/5 text-rose-400/80 cursor-not-allowed"
-                                    : "border-white/5 bg-white/[0.01] text-white/20 cursor-not-allowed"
+                                ${isBooked
+                                  ? "border-rose-500/20 bg-rose-500/5 text-rose-400/80 cursor-not-allowed"
+                                  : isAvailable
+                                    ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10 active:scale-95 cursor-pointer"
+                                    : editMode
+                                      ? "border-white/10 bg-white/[0.02] text-white/40 hover:border-emerald-500/30 hover:text-emerald-400/70 cursor-pointer"
+                                      : "border-white/5 bg-white/[0.01] text-white/20 cursor-not-allowed"
                                 }
                               `}
                             >
@@ -424,6 +570,12 @@ export function EventTypesClient({ initialEvents, username, appUrl, userId }: {
     navigator.clipboard.writeText(url);
     setCopied(id);
     setTimeout(() => setCopied(null), 1500);
+  };
+
+  const openLink = (id: string) => {
+    const url = linkFor(id);
+    if (!url) { router.push("/dashboard/settings"); return; }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const toggleActive = async (e: EventType) => {
@@ -565,6 +717,9 @@ export function EventTypesClient({ initialEvents, username, appUrl, userId }: {
                   <button onClick={() => copyLink(evt.id)} className="text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex-shrink-0 text-white" style={{ backgroundColor: copied === evt.id ? "#10B981" : color }}>
                     {copied === evt.id ? "Copied!" : "Copy"}
                   </button>
+                  <button onClick={() => openLink(evt.id)} title="Open booking page" className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex-shrink-0 bg-white/10 text-white hover:bg-white/20">
+                    <ExternalLink className="w-3 h-3" /> Open
+                  </button>
                 </div>
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-1.5">
@@ -585,6 +740,9 @@ export function EventTypesClient({ initialEvents, username, appUrl, userId }: {
                   </button>
                   <button onClick={() => copyLink(evt.id)} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-[#00D4FF]/15 text-[#0099BB] hover:bg-[#00D4FF]/25 transition-colors">
                     <Share2 className="w-3.5 h-3.5" /> Share
+                  </button>
+                  <button onClick={() => openLink(evt.id)} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-[#10B981]/15 text-[#10B981] hover:bg-[#10B981]/25 transition-colors">
+                    <ExternalLink className="w-3.5 h-3.5" /> Open
                   </button>
                   <div className="ml-auto flex items-center gap-1.5">
                     <button onClick={() => { setEditTarget(evt); setShowModal(true); }} className="p-2 rounded-lg text-[#7C3AED] bg-[#6C63FF]/15 hover:bg-[#6C63FF]/25 transition-all"><Edit2 className="w-3.5 h-3.5" /></button>

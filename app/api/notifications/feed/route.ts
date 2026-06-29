@@ -34,7 +34,8 @@ export async function GET() {
   ]);
 
   const bookings = bookingRows.map((b) => {
-    let type: "new" | "cancelled" | "completed" | "pending" = "new";
+    const isUpdated = Math.abs(b.updatedAt.getTime() - b.createdAt.getTime()) > 5000;
+    let type: "new" | "cancelled" | "completed" | "pending" | "rescheduled" = "new";
     let title = "New booking";
     if (b.status === "CANCELLED") {
       type = "cancelled";
@@ -42,6 +43,9 @@ export async function GET() {
     } else if (b.status === "COMPLETED") {
       type = "completed";
       title = "Meeting completed";
+    } else if (isUpdated) {
+      type = "rescheduled";
+      title = "Booking rescheduled";
     } else if (b.status === "PENDING") {
       type = "pending";
       title = "New booking request";
@@ -53,6 +57,10 @@ export async function GET() {
       message: `${b.guestName} · ${b.eventType.title}`,
       at: b.updatedAt.toISOString(),
       category: "booking" as const,
+      guestName: b.guestName,
+      startTime: b.startTime.toISOString(),
+      duration: b.eventType.duration,
+      status: type === "rescheduled" ? "RESCHEDULED" : b.status,
     };
   });
 

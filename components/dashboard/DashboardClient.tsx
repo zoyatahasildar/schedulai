@@ -12,7 +12,6 @@ import {
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
-import { NotificationBell } from "@/components/dashboard/NotificationBell";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
 const MINI_TREND = [{ v: 9 }, { v: 14 }, { v: 11 }, { v: 18 }, { v: 22 }, { v: 28 }, { v: 30 }];
@@ -191,7 +190,6 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <NotificationBell />
           <button
             onClick={() => router.push("/dashboard/bookings")}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.03] active:scale-95 transition-transform"
