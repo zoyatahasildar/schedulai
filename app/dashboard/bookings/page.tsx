@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Calendar, Clock, CheckCircle2, XCircle, AlertCircle, User } from "lucide-react";
+import { BookingActions } from "@/components/dashboard/BookingActions";
 
 const STATUS_CONFIG = {
   PENDING: {
@@ -152,12 +153,23 @@ export default async function BookingsPage() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${classes}`}
-                    >
-                      <Icon className="w-3 h-3" />
-                      {label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <BookingActions
+                        booking={{
+                          id: booking.id,
+                          name: booking.guestName,
+                          startTime: booking.startTime.toISOString(),
+                          duration: booking.eventType.duration,
+                          status: booking.status,
+                        }}
+                      />
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${classes}`}
+                      >
+                        <Icon className="w-3 h-3" />
+                        {label}
+                      </span>
+                    </div>
                     <p className="text-sm font-medium text-white/80">
                       {formatDate(booking.startTime)}
                     </p>
@@ -204,12 +216,23 @@ export default async function BookingsPage() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${classes}`}
-                    >
-                      <Icon className="w-3 h-3" />
-                      {label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <BookingActions
+                        booking={{
+                          id: booking.id,
+                          name: booking.guestName,
+                          startTime: booking.startTime.toISOString(),
+                          duration: booking.eventType.duration,
+                          status: booking.status,
+                        }}
+                      />
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${classes}`}
+                      >
+                        <Icon className="w-3 h-3" />
+                        {label}
+                      </span>
+                    </div>
                     <p className="text-sm text-white/50">
                       {formatDate(booking.startTime)}
                     </p>

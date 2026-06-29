@@ -11,7 +11,6 @@ import {
   Zap, LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut,
 } from "lucide-react";
 import Image from "next/image";
-import { NotificationBell } from "@/components/dashboard/NotificationBell";
 
 interface DashboardNavProps {
   user: { name?: string | null; email?: string | null; image?: string | null };
@@ -72,8 +71,6 @@ export function DashboardNav({ user }: DashboardNavProps) {
 
         {/* Right — notifications + user + logout */}
         <div className="flex items-center gap-1.5">
-          <NotificationBell />
-
           <Link
             href="/dashboard/settings"
             className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 transition-all"
