@@ -217,9 +217,7 @@ export function BookingsClient({ initialBookings }: { initialBookings: Booking[]
               <button key={tab.id} onClick={() => { setActiveTab(tab.id); setPage(1); }}
                 className={`relative px-4 py-2.5 text-[13px] font-semibold transition-all ${activeTab === tab.id ? "text-[#6C63FF]" : "text-gray-500 hover:text-gray-800"}`}>
                 {tab.label}
-                {counts[tab.id] !== undefined && (
-                  <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.id ? "bg-[#F0EFFF] text-[#6C63FF]" : "bg-gray-100 text-gray-500"}`}>{counts[tab.id]}</span>
-                )}
+                <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab.id ? "bg-[#F0EFFF] text-[#6C63FF]" : "bg-gray-100 text-gray-500"}`}>{counts[tab.id] ?? 0}</span>
                 {activeTab === tab.id && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] rounded-t-full" />}
               </button>
             ))}

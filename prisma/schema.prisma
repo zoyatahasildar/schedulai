@@ -164,11 +164,19 @@ model UserPreference {
   userId            String         @unique
   user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  // Notification preferences
   emailOnBooking    Boolean        @default(true)
   emailOnCancel     Boolean        @default(true)
   emailOnReschedule Boolean        @default(true)
   emailReminder     Boolean        @default(true)
   reminderTiming    ReminderTiming @default(HOURS_24)
+
+  // Appearance preferences
+  dashboardTheme    String         @default("system")
+  bookingTheme      String         @default("system")
+  bookingLayout     String         @default("month")
+  brandColorLight   String         @default("#292929")
+  brandColorDark    String         @default("#d0ac8a")
 
   @@map("user_preferences")
 }

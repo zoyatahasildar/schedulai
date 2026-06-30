@@ -1,16 +1,23 @@
 // app/dashboard/settings/page.tsx
-// Settings — ScheduleAI design, real account data
+// Settings — ChronoAI design, real account data
 // Owned by: Lead
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import {
   User, Bell, Link2, Shield, CreditCard, Palette, Globe,
   Check, Copy, ExternalLink, Mail, Clock, ChevronRight, LogOut, Save, Loader2, AlertCircle,
+  Calendar, Video, Plus,
 } from "lucide-react";
+import {
+  useTimezone,
+  supportedTimeZones,
+  browserTimeZone,
+} from "@/components/providers/TimezoneProvider";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
 
@@ -18,6 +25,7 @@ const TABS = [
   { id: "profile", label: "Profile", icon: User },
   { id: "booking-link", label: "Booking Link", icon: Link2 },
   { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "timezone", label: "Timezone", icon: Clock },
   { id: "security", label: "Account", icon: Shield },
   { id: "integrations", label: "Integrations", icon: Globe },
   { id: "billing", label: "Billing", icon: CreditCard },
@@ -64,10 +72,11 @@ export default function SettingsPage() {
           {tab === "profile" && <ProfileSection user={user} />}
           {tab === "booking-link" && <BookingLinkSection user={user} origin={origin} update={update} />}
           {tab === "notifications" && <NotificationsSection />}
+          {tab === "timezone" && <TimezoneSection />}
           {tab === "security" && <AccountSection user={user} />}
-          {tab === "integrations" && <Placeholder title="Integrations" desc="Connect Google / Outlook calendars and other tools." />}
+          {tab === "integrations" && <IntegrationsSection />}
           {tab === "billing" && <Placeholder title="Billing" desc="Manage your plan and payment methods." />}
-          {tab === "appearance" && <Placeholder title="Appearance" desc="Theme, language, and display preferences." />}
+          {tab === "appearance" && <AppearanceSection />}
         </div>
       </div>
     </div>
@@ -250,6 +259,195 @@ function AccountSection({ user }: { user: any }) {
   );
 }
 
+type IntegrationApp = {
+  name: string;
+  desc: string;
+  icon: typeof Calendar;
+  color: string;
+};
+
+const CALENDAR_APPS: IntegrationApp[] = [
+  { name: "Google Calendar", desc: "Two-way sync with your Google Calendar.", icon: Calendar, color: "#4285F4" },
+  { name: "Outlook Calendar", desc: "Sync events with Microsoft Outlook.", icon: Calendar, color: "#0078D4" },
+  { name: "Apple Calendar", desc: "Sync events with your iCloud Calendar.", icon: Calendar, color: "#A2AAAD" },
+];
+
+const VIDEO_APPS: IntegrationApp[] = [
+  { name: "Google Meet", desc: "Auto-attach a Meet link to new bookings.", icon: Video, color: "#00897B" },
+  { name: "Zoom", desc: "Auto-attach a Zoom link to new bookings.", icon: Video, color: "#2D8CFF" },
+  { name: "WhatsApp Video", desc: "Share a WhatsApp video call link with guests.", icon: Video, color: "#25D366" },
+];
+
+function IntegrationCard({ app }: { app: IntegrationApp }) {
+  const [connecting, setConnecting] = useState(false);
+  const Icon = app.icon;
+
+  const handleConnect = () => {
+    // OAuth wiring comes later — log the intent for now.
+    console.log(`[Integrations] Connect clicked: ${app.name}`);
+    setConnecting(true);
+    setTimeout(() => setConnecting(false), 1200);
+  };
+
+  return (
+    <div className="flex items-center gap-4 p-4 bg-[#0f1629] rounded-xl border border-white/[0.06]">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: `${app.color}1A` }}
+      >
+        <Icon className="w-5 h-5" style={{ color: app.color }} strokeWidth={1.75} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] font-semibold text-white truncate">{app.name}</p>
+        <p className="text-[12px] text-white/40 truncate">{app.desc}</p>
+      </div>
+      <button
+        type="button"
+        onClick={handleConnect}
+        disabled={connecting}
+        className="flex items-center gap-2 px-4 py-2 text-[13px] font-bold rounded-xl flex-shrink-0 bg-[#6C63FF]/15 text-[#6C63FF] hover:bg-[#6C63FF]/25 transition-colors disabled:opacity-60"
+      >
+        {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+        {connecting ? "Connecting…" : "Connect"}
+      </button>
+    </div>
+  );
+}
+
+function IntegrationsSection() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-[20px] font-bold text-white">Integrations</h2>
+        <p className="text-[14px] text-white/50 mt-1">
+          Connect your calendars and video apps to ChronoAI.
+        </p>
+      </div>
+
+      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-4 h-4 text-[#6C63FF]" />
+          <h3 className="text-[15px] font-bold text-white">Calendars</h3>
+        </div>
+        <div className="space-y-3">
+          {CALENDAR_APPS.map((app) => (
+            <IntegrationCard key={app.name} app={app} />
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Video className="w-4 h-4 text-[#6C63FF]" />
+          <h3 className="text-[15px] font-bold text-white">Video apps</h3>
+        </div>
+        <div className="space-y-3">
+          {VIDEO_APPS.map((app) => (
+            <IntegrationCard key={app.name} app={app} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TimezoneSection() {
+  const { timezone, setTimezone, hydrated, formatInTimeZone } = useTimezone();
+  const zones = useMemo(() => supportedTimeZones(), []);
+  const [saved, setSaved] = useState(false);
+  const [now, setNow] = useState<Date | null>(null);
+
+  // Live preview clock — only runs on the client, refreshed every 30s.
+  useEffect(() => {
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const onSelect = (tz: string) => {
+    setTimezone(tz);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const detected = browserTimeZone();
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-[20px] font-bold text-white">Timezone</h2>
+        <p className="text-[14px] text-white/50 mt-1">
+          Choose the timezone used to display dates and times across ChronoAI.
+        </p>
+      </div>
+
+      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+        <label
+          htmlFor="timezone-select"
+          className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-1.5 block"
+          style={MONO}
+        >
+          Display Timezone
+        </label>
+        <div className="relative">
+          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+          <select
+            id="timezone-select"
+            value={timezone}
+            onChange={(e) => onSelect(e.target.value)}
+            disabled={!hydrated}
+            className="w-full pl-9 pr-4 py-2.5 border border-white/10 rounded-xl text-[14px] bg-[#0f1629] text-white focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all disabled:opacity-60 appearance-none"
+          >
+            {/* Keep the current value selectable even if it's not in the list (e.g. fallback runtimes). */}
+            {!zones.includes(timezone) && <option value={timezone}>{timezone}</option>}
+            {zones.map((z) => (
+              <option key={z} value={z}>
+                {z.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mt-4">
+          <button
+            type="button"
+            onClick={() => onSelect(detected)}
+            disabled={!hydrated || timezone === detected}
+            className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] text-white/80 text-[13px] font-semibold rounded-xl hover:bg-white/10 transition-colors disabled:opacity-40"
+          >
+            <Globe className="w-4 h-4" /> Use detected ({detected.replace(/_/g, " ")})
+          </button>
+          {saved && (
+            <span className="flex items-center gap-1.5 text-[12px] font-bold text-emerald-300">
+              <Check className="w-4 h-4" /> Saved
+            </span>
+          )}
+        </div>
+
+        <div className="mt-5 p-3 bg-[#0f1629] rounded-xl border border-white/[0.06]">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-1" style={MONO}>
+            Current time in {timezone.replace(/_/g, " ")}
+          </p>
+          <p className="text-[15px] font-semibold text-white" style={MONO}>
+            {now
+              ? formatInTimeZone(now, { dateStyle: "full", timeStyle: "long" })
+              : "—"}
+          </p>
+        </div>
+
+        <div className="mt-4 flex items-start gap-2 p-3 bg-[#131a2e] rounded-xl border border-[#6C63FF]/10">
+          <Clock className="w-4 h-4 text-[#6C63FF] flex-shrink-0 mt-0.5" />
+          <p className="text-[12px] text-white/65">
+            All meeting times are stored in <span className="font-semibold">UTC</span>. This setting
+            only changes how times are displayed to you — your guests still see times in their own
+            timezone.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Placeholder({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="space-y-6">
@@ -261,6 +459,34 @@ function Placeholder({ title, desc }: { title: string; desc: string }) {
         <div className="w-16 h-16 rounded-2xl bg-[#6C63FF]/15 flex items-center justify-center mb-4"><Palette className="w-8 h-8 text-[#6C63FF]" strokeWidth={1.5} /></div>
         <p className="text-[16px] font-bold text-white mb-2">{title} — coming soon</p>
         <p className="text-[13px] text-white/40 max-w-xs">This section isn&apos;t wired to a backend yet, so it&apos;s hidden rather than showing placeholder data.</p>
+      </div>
+    </div>
+  );
+}
+
+function AppearanceSection() {
+  const router = useRouter();
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-[20px] font-bold text-white">Appearance</h2>
+        <p className="text-[14px] text-white/50 mt-1">Theme, layout, and brand colour preferences.</p>
+      </div>
+      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-8 flex flex-col items-center justify-center text-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6C63FF]/30 to-[#00D4FF]/20 border border-[#6C63FF]/20 flex items-center justify-center">
+          <Palette className="w-8 h-8 text-[#6C63FF]" strokeWidth={1.5} />
+        </div>
+        <div>
+          <p className="text-[16px] font-bold text-white mb-1">Customise your experience</p>
+          <p className="text-[13px] text-white/40 max-w-xs">Set your dashboard theme, booking page theme, calendar layout, and brand colours.</p>
+        </div>
+        <button
+          onClick={() => router.push("/settings/appearance")}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.02] transition-transform"
+        >
+          <Palette className="w-4 h-4" />
+          Open Appearance Settings
+        </button>
       </div>
     </div>
   );

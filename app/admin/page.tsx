@@ -24,12 +24,10 @@ export default async function AdminPage() {
   const total = bookings.length;
   const confirmed = bookings.filter((b) => b.status === "CONFIRMED").length;
   const pending = bookings.filter((b) => b.status === "PENDING").length;
-  const completed = bookings.filter((b) => b.status === "COMPLETED").length;
   const active = confirmed + pending;
   const revenue = bookings
     .filter((b) => b.status !== "CANCELLED")
     .reduce((s, b) => s + (b.eventType?.price ?? 0), 0);
-  const conversion = total > 0 ? Math.round(((confirmed + completed) / total) * 100) : 0;
 
   const months: { key: string; label: string; count: number }[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -145,7 +143,7 @@ export default async function AdminPage() {
       <DashboardSidebar user={user} />
       <main className="flex-1 min-w-0 bg-[#E8EDF4]">
         <AnalyticsClient
-          kpis={{ total, active, revenue: Math.round(revenue), conversion }}
+          kpis={{ total, active, revenue: Math.round(revenue) }}
           trend={trend}
           byDay={byDay}
           byType={byType}
