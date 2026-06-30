@@ -7,7 +7,6 @@ import {
   Sparkles, Download, Share2, TrendingUp, Users, IndianRupee, Percent, ArrowUpRight, Check,
 } from "lucide-react";
 import { useState } from "react";
-import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -96,7 +95,6 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
           <p className="text-[14px] text-white/50 mt-1">Data-driven insights into your scheduling performance.</p>
         </div>
         <div className="flex items-center gap-2">
-          <NotificationBell />
           <button onClick={shareSummary} className="flex items-center gap-2 px-4 py-2.5 bg-[#00D4FF]/15 text-[#0099BB] text-[13px] font-bold rounded-xl hover:bg-[#00D4FF]/25 transition-colors shadow-sm">
             {shared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}{shared ? "Copied!" : "Share Report"}
           </button>

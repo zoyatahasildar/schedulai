@@ -713,7 +713,20 @@ export function EventTypesClient({ initialEvents, username, appUrl, userId }: {
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/[0.04] rounded-xl mb-3 border border-white/[0.06]">
                   <Link2 className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
-                  <span className="text-[11px] text-white/50 truncate flex-1" style={MONO}>{url ? `${host}/book/${username}?event=${evt.id}` : "Set a username in Settings to get your link"}</span>
+                  {url ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open booking page in a new tab"
+                      className="text-[11px] text-white/50 truncate flex-1 hover:text-white hover:underline transition-colors"
+                      style={MONO}
+                    >
+                      {`${host}/book/${username}?event=${evt.id}`}
+                    </a>
+                  ) : (
+                    <span className="text-[11px] text-white/50 truncate flex-1" style={MONO}>Set a username in Settings to get your link</span>
+                  )}
                   <button onClick={() => copyLink(evt.id)} className="text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all flex-shrink-0 text-white" style={{ backgroundColor: copied === evt.id ? "#10B981" : color }}>
                     {copied === evt.id ? "Copied!" : "Copy"}
                   </button>

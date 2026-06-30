@@ -1,5 +1,5 @@
 // components/dashboard/DashboardClient.tsx
-// ScheduleAI dashboard UI (client) — dark theme, 3-column with mini-calendar
+// ChronoAI dashboard UI (client) — dark theme, 3-column with mini-calendar
 // Owned by: Lead
 
 "use client";
