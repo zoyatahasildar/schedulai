@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import {
-  User, Bell, Link2, Shield, CreditCard, Palette, Globe,
+  User, Bell, Link2, Shield, Palette, Globe,
   Check, Copy, ExternalLink, Mail, Clock, ChevronRight, LogOut, Save, Loader2, AlertCircle,
   Calendar, Video, Plus, Monitor, Sun, Moon, LayoutGrid, Rows,
 } from "lucide-react";
@@ -29,7 +29,6 @@ const TABS = [
   { id: "timezone", label: "Timezone", icon: Clock },
   { id: "security", label: "Account", icon: Shield },
   { id: "integrations", label: "Integrations", icon: Globe },
-  { id: "billing", label: "Billing", icon: CreditCard },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 
@@ -76,7 +75,6 @@ export default function SettingsPage() {
           {tab === "timezone" && <TimezoneSection />}
           {tab === "security" && <AccountSection user={user} />}
           {tab === "integrations" && <IntegrationsSection />}
-          {tab === "billing" && <BillingRedirect />}
           {tab === "appearance" && <AppearanceSection />}
         </div>
       </div>
@@ -584,33 +582,6 @@ function Placeholder({ title, desc }: { title: string; desc: string }) {
         <div className="w-16 h-16 rounded-2xl bg-[#6C63FF]/15 flex items-center justify-center mb-4"><Palette className="w-8 h-8 text-[#6C63FF]" strokeWidth={1.5} /></div>
         <p className="text-[16px] font-bold text-white mb-2">{title} — coming soon</p>
         <p className="text-[13px] text-white/40 max-w-xs">This section isn&apos;t wired to a backend yet, so it&apos;s hidden rather than showing placeholder data.</p>
-      </div>
-    </div>
-  );
-}
-
-function BillingRedirect() {
-  const router = useRouter();
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-[20px] font-bold text-white">Billing</h2>
-        <p className="text-[14px] text-white/50 mt-1">Manage your plan, payment methods, and invoices.</p>
-      </div>
-      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-10 flex flex-col items-center justify-center text-center">
-        <div className="w-14 h-14 rounded-2xl bg-[#6C63FF]/15 flex items-center justify-center mb-4">
-          <CreditCard className="w-7 h-7 text-[#6C63FF]" strokeWidth={1.5} />
-        </div>
-        <p className="text-[15px] font-bold text-white mb-2">Billing has its own page now</p>
-        <p className="text-[13px] text-white/40 max-w-sm mb-5">
-          Manage your subscription, payment methods, and download invoices from the dedicated billing page.
-        </p>
-        <button
-          onClick={() => router.push("/dashboard/billing")}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.02] active:scale-95 transition-transform"
-        >
-          <CreditCard className="w-4 h-4" /> Go to Billing
-        </button>
       </div>
     </div>
   );

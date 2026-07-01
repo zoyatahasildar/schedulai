@@ -41,7 +41,7 @@ interface BillingState {
   invoices: Invoice[];
 
   // Actions
-  upgradePlan: (planId: PlanId, cycle: BillingCycle) => void;
+  upgradePlan: (planId: PlanId, cycle: BillingCycle, amount: number) => void;
   downgradePlan: (planId: PlanId) => void;
   setBillingCycle: (cycle: BillingCycle) => void;
   addPaymentMethod: (method: Omit<PaymentMethod, "id">) => void;
@@ -58,13 +58,7 @@ const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   { id: "pm_2", type: "mastercard", last4: "8888", expiry: "06/26", isDefault: false },
 ];
 
-const MOCK_INVOICES: Invoice[] = [
-  { id: "INV-2026-006", date: "2026-06-01", amount: 799, plan: "Pro", status: "paid", pdfUrl: "#" },
-  { id: "INV-2026-005", date: "2026-05-01", amount: 799, plan: "Pro", status: "paid", pdfUrl: "#" },
-  { id: "INV-2026-004", date: "2026-04-01", amount: 799, plan: "Pro", status: "paid", pdfUrl: "#" },
-  { id: "INV-2026-003", date: "2026-03-01", amount: 0, plan: "Free", status: "paid", pdfUrl: "#" },
-  { id: "INV-2026-002", date: "2026-02-01", amount: 0, plan: "Free", status: "paid", pdfUrl: "#" },
-];
+const MOCK_INVOICES: Invoice[] = [];
 
 function futureDate(months: number): string {
   const d = new Date();
@@ -90,7 +84,7 @@ export const useBillingStore = create<BillingState>((set) => ({
   },
   invoices: MOCK_INVOICES,
 
-  upgradePlan: (planId, cycle) =>
+  upgradePlan: (planId, cycle, amount) =>
     set((s) => ({
       currentPlan: planId,
       billingCycle: cycle,
@@ -100,7 +94,7 @@ export const useBillingStore = create<BillingState>((set) => ({
         {
           id: `INV-${Date.now()}`,
           date: new Date().toISOString().split("T")[0],
-          amount: 0, // amount will be set by the caller
+          amount: amount,
           plan: planId === "pro" ? "Pro" : planId === "promax" ? "Pro Max" : "Free",
           status: "paid" as const,
           pdfUrl: "#",
