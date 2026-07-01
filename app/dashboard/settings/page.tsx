@@ -11,8 +11,10 @@ import Image from "next/image";
 import {
   User, Bell, Link2, Shield, CreditCard, Palette, Globe,
   Check, Copy, ExternalLink, Mail, Clock, ChevronRight, LogOut, Save, Loader2, AlertCircle,
-  Calendar, Video, Plus,
+  Calendar, Video, Plus, Monitor, Sun, Moon, LayoutGrid, Rows,
 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useAppearanceStore, type Theme, type Layout } from "@/store/appearanceStore";
 import {
   useTimezone,
   supportedTimeZones,
@@ -75,7 +77,7 @@ export default function SettingsPage() {
           {tab === "timezone" && <TimezoneSection />}
           {tab === "security" && <AccountSection user={user} />}
           {tab === "integrations" && <IntegrationsSection />}
-          {tab === "billing" && <Placeholder title="Billing" desc="Manage your plan and payment methods." />}
+          {tab === "billing" && <BillingRedirect />}
           {tab === "appearance" && <AppearanceSection />}
         </div>
       </div>
@@ -464,29 +466,399 @@ function Placeholder({ title, desc }: { title: string; desc: string }) {
   );
 }
 
-function AppearanceSection() {
+function BillingRedirect() {
   const router = useRouter();
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-[20px] font-bold text-white">Appearance</h2>
-        <p className="text-[14px] text-white/50 mt-1">Theme, layout, and brand colour preferences.</p>
+        <h2 className="text-[20px] font-bold text-white">Billing</h2>
+        <p className="text-[14px] text-white/50 mt-1">Manage your plan, payment methods, and invoices.</p>
       </div>
-      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-8 flex flex-col items-center justify-center text-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6C63FF]/30 to-[#00D4FF]/20 border border-[#6C63FF]/20 flex items-center justify-center">
-          <Palette className="w-8 h-8 text-[#6C63FF]" strokeWidth={1.5} />
+      <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-10 flex flex-col items-center justify-center text-center">
+        <div className="w-14 h-14 rounded-2xl bg-[#6C63FF]/15 flex items-center justify-center mb-4">
+          <CreditCard className="w-7 h-7 text-[#6C63FF]" strokeWidth={1.5} />
+        </div>
+        <p className="text-[15px] font-bold text-white mb-2">Billing has its own page now</p>
+        <p className="text-[13px] text-white/40 max-w-sm mb-5">
+          Manage your subscription, payment methods, and download invoices from the dedicated billing page.
+        </p>
+        <button
+          onClick={() => router.push("/dashboard/billing")}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.02] active:scale-95 transition-transform"
+        >
+          <CreditCard className="w-4 h-4" /> Go to Billing
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AppearanceSectionBlock({ title, desc, icon: Icon, children }: {
+  title: string; desc: string; icon: React.ElementType; children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-[#6C63FF]/15 flex items-center justify-center flex-shrink-0">
+          <Icon className="w-4 h-4 text-[#6C63FF]" strokeWidth={2} />
         </div>
         <div>
-          <p className="text-[16px] font-bold text-white mb-1">Customise your experience</p>
-          <p className="text-[13px] text-white/40 max-w-xs">Set your dashboard theme, booking page theme, calendar layout, and brand colours.</p>
+          <h2 className="text-[15px] font-bold text-white leading-tight">{title}</h2>
+          <p className="text-[12px] text-white/45 mt-0.5">{desc}</p>
+        </div>
+      </div>
+      <div className="bg-[#131a2e] rounded-2xl border border-white/[0.05] p-5">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function AppearanceRadioOption({ value, label, sublabel, icon: Icon, groupId, isSelected }: {
+  value: string; label: string; sublabel?: string; icon: React.ElementType;
+  groupId: string; isSelected: boolean;
+}) {
+  const uid = `radio-${groupId}-${value}`;
+  return (
+    <label
+      htmlFor={uid}
+      className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+        isSelected
+          ? "border-[#6C63FF] bg-[#6C63FF]/[0.08]"
+          : "border-white/[0.07] bg-[#0f1629] hover:border-[#6C63FF]/40 hover:bg-[#6C63FF]/[0.04]"
+      }`}
+    >
+      <RadioGroupItem value={value} id={uid} className="border-white/30 text-[#6C63FF]" />
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+        isSelected ? "bg-[#6C63FF]/15" : "bg-white/[0.06]"
+      }`}>
+        <Icon className={`w-4 h-4 ${isSelected ? "text-[#6C63FF]" : "text-white/60"}`} strokeWidth={1.75} />
+      </div>
+      <div className="min-w-0">
+        <p className={`text-[13px] font-semibold ${isSelected ? "text-[#6C63FF]" : "text-white"}`}>{label}</p>
+        {sublabel && <p className="text-[11px] text-white/40 mt-0.5">{sublabel}</p>}
+      </div>
+    </label>
+  );
+}
+
+function AppearanceColorRow({ id, label, sublabel, value, onChange }: {
+  id: string; label: string; sublabel: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-white/[0.05] last:border-0">
+      <div>
+        <p className="text-[13px] font-semibold text-white">{label}</p>
+        <p className="text-[11px] text-white/40 mt-0.5">{sublabel}</p>
+      </div>
+      <label htmlFor={id} className="flex items-center gap-3 cursor-pointer group">
+        <span className="text-[12px] font-mono text-white/50 group-hover:text-white/80 transition-colors uppercase">
+          {value}
+        </span>
+        <div className="relative">
+          <div
+            className="w-10 h-10 rounded-xl border-2 border-white/10 shadow-lg shadow-black/30 group-hover:scale-105 transition-transform"
+            style={{ backgroundColor: value }}
+          />
+          <input
+            id={id}
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          />
+        </div>
+      </label>
+    </div>
+  );
+}
+
+function AppearanceSection() {
+  const globalStore = useAppearanceStore();
+
+  const [hydrated, setHydrated] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Saved values from backend database
+  const [savedDashTheme, setSavedDashTheme] = useState<Theme>("system");
+  const [savedBookTheme, setSavedBookTheme] = useState<Theme>("system");
+  const [savedLayout, setSavedLayout] = useState<Layout>("month");
+  const [savedColorLight, setSavedColorLight] = useState<string>("#6C63FF");
+  const [savedColorDark, setSavedColorDark] = useState<string>("#6C63FF");
+
+  // Local user configurations (dirty form state)
+  const [dashTheme, setDashTheme] = useState<Theme>("system");
+  const [bookTheme, setBookTheme] = useState<Theme>("system");
+  const [layout, setLayout] = useState<Layout>("month");
+  const [colorLight, setColorLight] = useState<string>("#6C63FF");
+  const [colorDark, setColorDark] = useState<string>("#6C63FF");
+
+  const [toast, setToast] = useState<{ visible: boolean; message: string; variant: "success" | "error" }>({
+    visible: false,
+    message: "",
+    variant: "success",
+  });
+
+  const showToast = (message: string, variant: "success" | "error" = "success") => {
+    setToast({ visible: true, message, variant });
+    setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3000);
+  };
+
+  // Fetch settings on mount
+  useEffect(() => {
+    fetch("/api/user/preferences")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const dTheme = res.data.dashboardTheme ?? "system";
+          const bTheme = res.data.bookingTheme ?? "system";
+          const bLayout = res.data.bookingLayout ?? "month";
+          const cLight = res.data.brandColorLight ?? "#6C63FF";
+          const cDark = res.data.brandColorDark ?? "#6C63FF";
+
+          // Set saved values
+          setSavedDashTheme(dTheme);
+          setSavedBookTheme(bTheme);
+          setSavedLayout(bLayout);
+          setSavedColorLight(cLight);
+          setSavedColorDark(cDark);
+
+          // Set input form values
+          setDashTheme(dTheme);
+          setBookTheme(bTheme);
+          setLayout(bLayout);
+          setColorLight(cLight);
+          setColorDark(cDark);
+        }
+        setHydrated(true);
+      })
+      .catch(() => {
+        setHydrated(true);
+      });
+  }, []);
+
+  // Synchronize local form options to the global store in real-time
+  useEffect(() => {
+    if (hydrated) {
+      globalStore.load({
+        dashboardTheme: dashTheme,
+        bookingTheme: bookTheme,
+        bookingLayout: layout,
+        brandColorLight: colorLight,
+        brandColorDark: colorDark,
+      });
+    }
+  }, [dashTheme, bookTheme, layout, colorLight, colorDark, hydrated]);
+
+  const hasChanges =
+    dashTheme !== savedDashTheme ||
+    bookTheme !== savedBookTheme ||
+    layout !== savedLayout ||
+    colorLight !== savedColorLight ||
+    colorDark !== savedColorDark;
+
+  const handleDiscard = () => {
+    setDashTheme(savedDashTheme);
+    setBookTheme(savedBookTheme);
+    setLayout(savedLayout);
+    setColorLight(savedColorLight);
+    setColorDark(savedColorDark);
+    showToast("Changes discarded", "success");
+  };
+
+  const handleResetToDefaults = () => {
+    setDashTheme("system");
+    setBookTheme("system");
+    setLayout("month");
+    setColorLight("#6C63FF");
+    setColorDark("#6C63FF");
+    showToast("Reverted to original website theme", "success");
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/user/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dashboardTheme: dashTheme,
+          bookingTheme: bookTheme,
+          bookingLayout: layout,
+          brandColorLight: colorLight,
+          brandColorDark: colorDark,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error ?? "Failed to save preferences", "error");
+      } else {
+        // Save state updated
+        setSavedDashTheme(dashTheme);
+        setSavedBookTheme(bookTheme);
+        setSavedLayout(layout);
+        setSavedColorLight(colorLight);
+        setSavedColorDark(colorDark);
+
+        // Update global Zustand store immediately so the side panel updates
+        globalStore.load({
+          dashboardTheme: dashTheme,
+          bookingTheme: bookTheme,
+          bookingLayout: layout,
+          brandColorLight: colorLight,
+          brandColorDark: colorDark,
+        });
+
+        showToast("Appearance preferences saved!");
+      }
+    } catch {
+      showToast("Something went wrong. Please try again.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Settings Header */}
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="text-[20px] font-bold text-white">Appearance</h2>
+          <p className="text-[14px] text-white/50 mt-1">Theme, layout, and brand colour preferences.</p>
         </div>
         <button
-          onClick={() => router.push("/settings/appearance")}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.02] transition-transform"
+          onClick={handleResetToDefaults}
+          className="flex items-center gap-2 px-4 py-2 border border-white/10 hover:bg-white/[0.05] text-[12px] font-bold rounded-xl transition-all"
         >
-          <Palette className="w-4 h-4" />
-          Open Appearance Settings
+          Reset to Defaults
         </button>
+      </div>
+
+      {!hydrated ? (
+        <div className="space-y-6 max-w-3xl animate-pulse">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-[#131a2e] rounded-2xl" />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-3xl">
+          {/* Dashboard Theme */}
+          <AppearanceSectionBlock title="Dashboard Theme" desc="Controls the colour scheme of your ChronoAI dashboard." icon={Monitor}>
+            <RadioGroup
+              value={dashTheme}
+              onValueChange={(v) => setDashTheme(v as Theme)}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2.5"
+            >
+              <AppearanceRadioOption groupId="dash" value="system" label="System default" sublabel="Follows OS setting" icon={Monitor} isSelected={dashTheme === "system"} />
+              <AppearanceRadioOption groupId="dash" value="light" label="Light" sublabel="Always light mode" icon={Sun} isSelected={dashTheme === "light"} />
+              <AppearanceRadioOption groupId="dash" value="dark" label="Dark" sublabel="Always dark mode" icon={Moon} isSelected={dashTheme === "dark"} />
+            </RadioGroup>
+          </AppearanceSectionBlock>
+
+          {/* Booking Page Theme */}
+          <AppearanceSectionBlock title="Booking Page Theme" desc="Controls what your guests see when they visit your booking link." icon={Sun}>
+            <RadioGroup
+              value={bookTheme}
+              onValueChange={(v) => setBookTheme(v as Theme)}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2.5"
+            >
+              <AppearanceRadioOption groupId="book" value="system" label="System default" sublabel="Follows visitor's OS" icon={Monitor} isSelected={bookTheme === "system"} />
+              <AppearanceRadioOption groupId="book" value="light" label="Light" sublabel="Always light mode" icon={Sun} isSelected={bookTheme === "light"} />
+              <AppearanceRadioOption groupId="book" value="dark" label="Dark" sublabel="Always dark mode" icon={Moon} isSelected={bookTheme === "dark"} />
+            </RadioGroup>
+          </AppearanceSectionBlock>
+
+          {/* Booking Layout */}
+          <AppearanceSectionBlock title="Booking Layout" desc="The calendar view your guests use when picking a time slot." icon={Calendar}>
+            <RadioGroup
+              value={layout}
+              onValueChange={(v) => setLayout(v as Layout)}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2.5"
+            >
+              <AppearanceRadioOption groupId="layout" value="month" label="Month" sublabel="Full month grid" icon={Calendar} isSelected={layout === "month"} />
+              <AppearanceRadioOption groupId="layout" value="week" label="Weekly" sublabel="7-day rolling view" icon={LayoutGrid} isSelected={layout === "week"} />
+              <AppearanceRadioOption groupId="layout" value="day" label="Column" sublabel="Day-by-day columns" icon={Rows} isSelected={layout === "day"} />
+            </RadioGroup>
+          </AppearanceSectionBlock>
+
+          {/* Brand Colours */}
+          <AppearanceSectionBlock title="Custom Brand Colours" desc="The accent colour applied across your booking page for both themes." icon={Palette}>
+            <div className="space-y-4">
+              <AppearanceColorRow
+                id="brand-color-light"
+                label="Light theme accent"
+                sublabel="Used when booking page is in light mode"
+                value={colorLight}
+                onChange={(v) => setColorLight(v)}
+              />
+              <AppearanceColorRow
+                id="brand-color-dark"
+                label="Dark theme accent"
+                sublabel="Used when booking page is in dark mode"
+                value={colorDark}
+                onChange={(v) => setColorDark(v)}
+              />
+              {(colorLight !== "#6C63FF" || colorDark !== "#6C63FF") && (
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={() => {
+                      setColorLight("#6C63FF");
+                      setColorDark("#6C63FF");
+                      showToast("Custom colors removed", "success");
+                    }}
+                    className="text-[12px] font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5"
+                  >
+                    Remove Custom Theme
+                  </button>
+                </div>
+              )}
+            </div>
+          </AppearanceSectionBlock>
+        </div>
+      )}
+
+      {/* Floating Unsaved Changes Banner */}
+      {hasChanges && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] w-[calc(100%-2rem)] max-w-xl bg-[#131a2e] border border-white/[0.08] shadow-[0_10px_35px_rgba(0,0,0,0.5)] rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#6C63FF] animate-pulse flex-shrink-0" />
+            <div>
+              <p className="text-[14px] font-bold text-white leading-tight">Unsaved changes</p>
+              <p className="text-[12px] text-white/45 mt-0.5">Please save or discard your modifications.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={handleDiscard}
+              disabled={saving}
+              className="px-4 py-2 border border-white/10 hover:bg-white/[0.05] text-[13px] font-bold rounded-xl transition-all disabled:opacity-60"
+            >
+              Discard
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:shadow-[#6C63FF]/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Changes
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Inline Toast Notification */}
+      <div
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl text-[13px] font-semibold transition-all duration-300 ${
+          toast.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+        } ${
+          toast.variant === "success"
+            ? "bg-emerald-500 text-white shadow-emerald-500/25"
+            : "bg-red-500 text-white shadow-red-500/25"
+        }`}
+      >
+        {toast.variant === "success" ? <Check className="w-4 h-4" /> : null}
+        {toast.message}
       </div>
     </div>
   );

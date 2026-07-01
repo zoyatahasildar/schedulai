@@ -228,7 +228,7 @@ function EventModal({ userId, initial, onClose, onSaved }: {
     setAvailMsg("");
     try {
       const dow = new Date(`${previewDate}T00:00:00Z`).getUTCDay();
-      const windows = mergeWindows([...onTimes]);
+      const windows = mergeWindows(Array.from(onTimes));
 
       // Keep the other weekdays untouched (POST replaces the whole schedule).
       const existingRes = await fetch(`/api/availability?userId=${userId}`);
