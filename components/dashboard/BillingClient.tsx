@@ -41,6 +41,17 @@ export function BillingClient() {
     visible: false, message: "", variant: "success",
   });
 
+  useEffect(() => {
+    // Inject Razorpay checkout script on mount
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const showToast = (message: string, variant: "success" | "error" = "success") => {
     setToast({ visible: true, message, variant });
     setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3000);
@@ -66,6 +77,38 @@ export function BillingClient() {
     billing.downgradePlan(planId);
     showToast(`Switched to ${plan.name} plan`);
     setShowConfirm(null);
+  };
+
+  const handlePayment = async () => {
+    if (!showConfirm || showConfirm.planId === "free") return;
+    const planId = showConfirm.planId;
+    const plan = PLANS.find((p) => p.id === planId)!;
+    const amt = cycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+
+    setUpgrading(planId);
+    setShowConfirm(null);
+
+    try {
+      const result = await initializePayment({
+        amount: amt * 100, // convert to paise
+        planId,
+        cycle,
+        customerEmail: session?.user?.email || "billing@chronoai.com",
+        customerName: session?.user?.name || "ChronoAI User",
+      });
+
+      if (result.success) {
+        billing.upgradePlan(planId, cycle, amt);
+        showToast(`Successfully upgraded to ${plan.name}! 🎉`);
+      } else {
+        showToast(result.error || "Payment failed", "error");
+      }
+    } catch (err) {
+      showToast("Error processing payment", "error");
+      console.error(err);
+    } finally {
+      setUpgrading(null);
+    }
   };
 
 
@@ -451,16 +494,17 @@ export function BillingClient() {
             </div>
             <div className="flex flex-col gap-3">
               {showConfirm.action === "upgrade" && showConfirm.planId !== "free" ? (
-                <div className="relative w-full h-[45px] rounded-xl overflow-hidden bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] shadow-lg shadow-[#6C63FF]/25 hover:opacity-90 transition-opacity flex items-center justify-center cursor-pointer group">
-                  <span className="text-[13px] font-bold text-white relative z-10 pointer-events-none group-hover:scale-[1.02] transition-transform">
-                    Pay Now
-                  </span>
-                  <div className="absolute inset-0 z-20 opacity-0 overflow-hidden flex items-center justify-center">
-                    <div className="w-[500px] h-[200px] flex items-center justify-center transform scale-[4]">
-                      <RazorpayButton />
-                    </div>
-                  </div>
-                </div>
+                <button
+                  onClick={handlePayment}
+                  disabled={upgrading !== null}
+                  className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-[#6C63FF]/25 flex items-center justify-center gap-2"
+                >
+                  Pay ₹{(() => {
+                    const p = PLANS.find((pl) => pl.id === showConfirm.planId)!;
+                    const amt = cycle === "yearly" ? p.yearlyPrice : p.monthlyPrice;
+                    return amt.toLocaleString("en-IN");
+                  })()}
+                </button>
               ) : (
                 <button
                   onClick={handleDowngrade}
@@ -493,24 +537,6 @@ export function BillingClient() {
       )}
     </div>
   );
-}
-
-function RazorpayButton() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    containerRef.current.innerHTML = "";
-    const form = document.createElement("form");
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/payment-button.js";
-    script.setAttribute("data-payment_button_id", "pl_T4EvaSFA4AvYtM");
-    script.async = true;
-    form.appendChild(script);
-    containerRef.current.appendChild(form);
-  }, []);
-
-  return <div ref={containerRef} className="w-full flex justify-center min-h-[45px] items-center"></div>;
 }
 
 

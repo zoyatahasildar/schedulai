@@ -122,58 +122,48 @@ export async function initializePayment(options: {
   customerEmail: string;
   customerName: string;
 }): Promise<PaymentResult> {
-  // ─── Step 1: Create order on your backend ──────────────────────────────
-  // In production, call your API route:
-  //   const order = await fetch("/api/billing/create-order", {
-  //     method: "POST",
-  //     body: JSON.stringify({ amount: options.amount, planId: options.planId }),
-  //   }).then(r => r.json());
+  const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "";
+  
+  if (!keyId || keyId.startsWith("rzp_test_XXXX")) {
+    console.log(`[Razorpay Mock] No valid Key ID found. Simulating payment of ₹${options.amount / 100} for ${options.planId}`);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          paymentId: `pay_mock_${Date.now()}`,
+          orderId: `order_mock_${Date.now()}`,
+          signature: `sig_mock_${Date.now()}`,
+        });
+      }, 1500);
+    });
+  }
 
-  // For now, simulate a successful order creation
-  const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-  // ─── Step 2: Open Razorpay checkout ────────────────────────────────────
-  // Uncomment the block below when you have a real Razorpay key:
-  //
-  // return new Promise((resolve) => {
-  //   const rzp = new (window as any).Razorpay({
-  //     key: RAZORPAY_CONFIG.KEY_ID,
-  //     amount: options.amount,
-  //     currency: RAZORPAY_CONFIG.CURRENCY,
-  //     name: RAZORPAY_CONFIG.COMPANY_NAME,
-  //     description: `${options.planId.toUpperCase()} Plan — ${options.cycle}`,
-  //     image: RAZORPAY_CONFIG.COMPANY_LOGO,
-  //     order_id: order.id,           // from your backend
-  //     prefill: {
-  //       name: options.customerName,
-  //       email: options.customerEmail,
-  //     },
-  //     theme: { color: RAZORPAY_CONFIG.THEME_COLOR },
-  //     handler: (response: any) => {
-  //       resolve({
-  //         success: true,
-  //         paymentId: response.razorpay_payment_id,
-  //         orderId: response.razorpay_order_id,
-  //         signature: response.razorpay_signature,
-  //       });
-  //     },
-  //     modal: {
-  //       ondismiss: () => resolve({ success: false, error: "Payment cancelled by user" }),
-  //     },
-  //   });
-  //   rzp.open();
-  // });
-
-  // ─── Mock: simulate successful payment ─────────────────────────────────
   return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        paymentId: `pay_${Date.now()}`,
-        orderId: mockOrderId,
-        signature: `sig_${Math.random().toString(36).slice(2, 12)}`,
-      });
-    }, 1500);
+    const rzp = new (window as any).Razorpay({
+      key: keyId,
+      amount: options.amount,
+      currency: RAZORPAY_CONFIG.CURRENCY,
+      name: RAZORPAY_CONFIG.COMPANY_NAME,
+      description: `${options.planId.toUpperCase()} Plan — ${options.cycle}`,
+      image: RAZORPAY_CONFIG.COMPANY_LOGO,
+      prefill: {
+        name: options.customerName,
+        email: options.customerEmail,
+      },
+      theme: { color: RAZORPAY_CONFIG.THEME_COLOR },
+      handler: (response: any) => {
+        resolve({
+          success: true,
+          paymentId: response.razorpay_payment_id,
+          orderId: response.razorpay_order_id,
+          signature: response.razorpay_signature,
+        });
+      },
+      modal: {
+        ondismiss: () => resolve({ success: false, error: "Payment cancelled by user" }),
+      },
+    });
+    rzp.open();
   });
 }
 
