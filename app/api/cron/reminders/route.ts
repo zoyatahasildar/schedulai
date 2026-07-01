@@ -48,6 +48,8 @@ export async function GET(request: Request) {
         startTime: booking.startTime,
         endTime: booking.endTime,
         notes: booking.notes,
+        meetingUrl: booking.meetingUrl,
+        additionalGuests: booking.additionalGuests,
       };
 
       const result = await sendReminderEmail(emailData);

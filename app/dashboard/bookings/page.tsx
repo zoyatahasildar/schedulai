@@ -50,9 +50,15 @@ function formatTime(date: Date) {
 export default async function BookingsPage() {
   const session = await getServerSession(authOptions);
 
+  const hostUser = await prisma.user.findUnique({
+    where: { id: session!.user.id },
+    select: { username: true },
+  });
+  const hostUsername = hostUser?.username || "";
+
   const allBookings = await prisma.booking.findMany({
     where: { eventType: { userId: session!.user.id } },
-    include: { eventType: true },
+    include: { eventType: { include: { user: true } } },
     orderBy: { startTime: "asc" },
   });
 
@@ -154,6 +160,15 @@ export default async function BookingsPage() {
                   </div>
                   <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                     <div className="flex items-center gap-2">
+                      {hostUsername && (
+                        <a
+                          href={`/book/${hostUsername}/${booking.eventTypeId}?guestName=${encodeURIComponent(booking.guestName)}&guestEmail=${encodeURIComponent(booking.guestEmail)}&guestPhone=${encodeURIComponent(booking.guestPhone || "")}&notes=${encodeURIComponent(booking.notes || "")}`}
+                          target="_blank"
+                          className="px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors whitespace-nowrap"
+                        >
+                          Book again
+                        </a>
+                      )}
                       <BookingActions
                         booking={{
                           id: booking.id,
@@ -217,6 +232,15 @@ export default async function BookingsPage() {
                   </div>
                   <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                     <div className="flex items-center gap-2">
+                      {hostUsername && (
+                        <a
+                          href={`/book/${hostUsername}/${booking.eventTypeId}?guestName=${encodeURIComponent(booking.guestName)}&guestEmail=${encodeURIComponent(booking.guestEmail)}&guestPhone=${encodeURIComponent(booking.guestPhone || "")}&notes=${encodeURIComponent(booking.notes || "")}`}
+                          target="_blank"
+                          className="px-2.5 py-1 text-[11px] font-semibold rounded-md bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors whitespace-nowrap"
+                        >
+                          Book again
+                        </a>
+                      )}
                       <BookingActions
                         booking={{
                           id: booking.id,

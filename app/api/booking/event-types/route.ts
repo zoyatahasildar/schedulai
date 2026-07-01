@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, duration, price } = body;
+    const { title, description, duration, price, locationType } = body;
 
     // ─── Validation ─────────────────────────────────────
     if (!title || typeof title !== "string" || !title.trim()) {
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
         duration: Math.round(parsedDuration),
         price: parsedPrice,
         userId: session.user.id,
+        locationType: locationType || "MEET",
       },
     });
 

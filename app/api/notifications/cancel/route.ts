@@ -31,6 +31,8 @@ export async function POST(req: NextRequest) {
       startTime: booking.startTime,
       endTime: booking.endTime,
       notes: booking.notes,
+      meetingUrl: booking.meetingUrl,
+      additionalGuests: booking.additionalGuests,
     };
 
     await sendCancellationEmail(emailData);

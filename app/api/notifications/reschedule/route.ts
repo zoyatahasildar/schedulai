@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
       startTime: updatedBooking.startTime,
       endTime: updatedBooking.endTime,
       notes: updatedBooking.notes,
+      meetingUrl: updatedBooking.meetingUrl,
+      additionalGuests: updatedBooking.additionalGuests,
       previousStartTime: new Date(previousStartTime),
       previousEndTime: new Date(previousEndTime),
     };

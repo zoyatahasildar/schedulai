@@ -4,6 +4,7 @@
 
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import ZoomProvider from "next-auth/providers/zoom";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
@@ -13,6 +14,22 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "openid email profile https://www.googleapis.com/auth/calendar.events",
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    }),
+    ZoomProvider({
+      clientId: process.env.ZOOM_CLIENT_ID!,
+      clientSecret: process.env.ZOOM_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "meeting:write meeting:read",
+        },
+      },
     }),
   ],
   session: {

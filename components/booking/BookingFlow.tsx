@@ -3,13 +3,11 @@
 // ═══════════════════════════════════════════════
 // 🔒 OWNED BY: Member 2 (Booking Engine)
 // ═══════════════════════════════════════════════
-// All times are handled in UTC (team rule #1). Slot labels are shown in UTC
-// so guest and host agree on a single canonical time.
 
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { Loader2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,17 +44,21 @@ function buildDays(count: number): { value: string; weekday: string; day: string
   return days;
 }
 
-function formatSlotTime(iso: string): string {
+function formatSlotTime(iso: string, timezone: string): string {
   return new Date(iso).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-    timeZone: "UTC",
+    timeZone: timezone,
   });
 }
 
 export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const username = (params?.username as string) || "";
+
   const days = buildDays(14);
 
   const [selectedDate, setSelectedDate] = useState(days[0].value);
@@ -64,13 +66,53 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
+  // Form states
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [additionalGuests, setAdditionalGuests] = useState<string[]>([]);
+  const [newGuestEmail, setNewGuestEmail] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Timezone detection
+  const [timezone, setTimezone] = useState("UTC");
+  const [bookingHistory, setBookingHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Detect local timezone
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz) {
+        setTimezone(tz);
+      }
+    } catch (e) {
+      console.warn("Failed to detect timezone:", e);
+    }
+
+    // Load guest booking history from localStorage
+    try {
+      const history = JSON.parse(localStorage.getItem("chronoai_guest_bookings") || "[]");
+      setBookingHistory(history);
+    } catch (e) {
+      console.warn("Failed to load booking history:", e);
+    }
+  }, []);
+
+  // Sync initial state with search parameters if they exist
+  useEffect(() => {
+    const qName = searchParams.get("guestName");
+    const qEmail = searchParams.get("guestEmail");
+    const qPhone = searchParams.get("guestPhone");
+    const qNotes = searchParams.get("notes");
+
+    if (qName) setGuestName(qName);
+    if (qEmail) setGuestEmail(qEmail);
+    if (qPhone) setGuestPhone(qPhone);
+    if (qNotes) setNotes(qNotes);
+  }, [searchParams]);
 
   const loadSlots = useCallback(
     async (date: string) => {
@@ -100,6 +142,26 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
     loadSlots(selectedDate);
   }, [selectedDate, loadSlots]);
 
+  const handleAddGuest = () => {
+    const email = newGuestEmail.trim();
+    if (!email) return;
+    if (!EMAIL_RE.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (additionalGuests.includes(email)) {
+      setError("This guest email has already been added.");
+      return;
+    }
+    setError(null);
+    setAdditionalGuests((prev) => [...prev, email]);
+    setNewGuestEmail("");
+  };
+
+  const handleRemoveGuest = (index: number) => {
+    setAdditionalGuests((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -117,6 +179,19 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
       return;
     }
 
+    // Parse and validate additional guest emails
+    const guestsList = [...additionalGuests];
+    if (newGuestEmail.trim()) {
+      const trimmedNew = newGuestEmail.trim();
+      if (!EMAIL_RE.test(trimmedNew)) {
+        setError(`Please enter a valid email for the unsaved guest: ${trimmedNew}`);
+        return;
+      }
+      if (!guestsList.includes(trimmedNew)) {
+        guestsList.push(trimmedNew);
+      }
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/booking", {
@@ -129,12 +204,36 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
           notes: notes.trim() || undefined,
           startTime: selectedSlot.startTime,
           eventTypeId,
+          additionalGuests: guestsList,
         }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
         throw new Error(json.error || "Failed to create booking");
       }
+
+      // Save to localStorage history
+      try {
+        const historyItem = {
+          id: json.data.id,
+          eventTypeId,
+          eventTitle: json.data.eventType?.title || "Meeting",
+          hostName,
+          guestName: guestName.trim(),
+          guestEmail: guestEmail.trim(),
+          guestPhone: guestPhone.trim(),
+          notes: notes.trim(),
+          timestamp: new Date().toISOString(),
+        };
+        const existingHistory = JSON.parse(localStorage.getItem("chronoai_guest_bookings") || "[]");
+        localStorage.setItem(
+          "chronoai_guest_bookings",
+          JSON.stringify([historyItem, ...existingHistory].slice(0, 5))
+        );
+      } catch (e) {
+        console.error("Local storage booking history save failed:", e);
+      }
+
       router.push(`/booking/success?bookingId=${json.data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create booking");
@@ -176,7 +275,7 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
 
       {/* Slot grid */}
       <div>
-        <Label className="mb-3 block">Available times (UTC)</Label>
+        <Label className="mb-3 block">Available times ({timezone})</Label>
         {loadingSlots ? (
           <div className="flex items-center gap-2 text-gray-400 py-8 justify-center">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -199,7 +298,7 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
                     : "border-gray-200 text-gray-700 hover:border-violet-400"
                 }`}
               >
-                {formatSlotTime(slot.startTime)}
+                {formatSlotTime(slot.startTime, timezone)}
               </button>
             ))}
           </div>
@@ -230,6 +329,50 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
           />
         </div>
         <div className="space-y-2">
+          <Label htmlFor="newGuestEmail">Additional guest emails (optional)</Label>
+          <div className="flex gap-2">
+            <Input
+              id="newGuestEmail"
+              type="email"
+              value={newGuestEmail}
+              onChange={(e) => setNewGuestEmail(e.target.value)}
+              placeholder="guest@example.com"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddGuest();
+                }
+              }}
+            />
+            <Button
+              type="button"
+              onClick={handleAddGuest}
+              className="bg-violet-600 hover:bg-violet-700 text-white font-semibold"
+            >
+              +
+            </Button>
+          </div>
+          {additionalGuests.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {additionalGuests.map((email, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1 bg-violet-50 text-violet-700 border border-violet-200 px-2 py-1 rounded-md text-xs font-medium"
+                >
+                  {email}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveGuest(idx)}
+                    className="text-violet-500 hover:text-violet-700 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="guestPhone">Phone (optional)</Label>
           <Input
             id="guestPhone"
@@ -252,7 +395,7 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
 
         {selectedSlot && (
           <p className="text-sm text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
-            Booking {formatSlotTime(selectedSlot.startTime)} UTC on {selectedDate} ·{" "}
+            Booking {formatSlotTime(selectedSlot.startTime, timezone)} ({timezone}) on {selectedDate} ·{" "}
             {duration} min
           </p>
         )}
@@ -272,6 +415,40 @@ export function BookingFlow({ eventTypeId, duration, hostName }: BookingFlowProp
           {submitting ? "Confirming…" : "Confirm booking"}
         </Button>
       </form>
+
+      {/* Guest Booking History & Quick Re-booking */}
+      {bookingHistory.length > 0 && (
+        <div className="border-t border-gray-100 pt-6 space-y-3">
+          <Label className="block font-semibold text-gray-800">Your recent bookings</Label>
+          <div className="space-y-2">
+            {bookingHistory.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50 text-sm">
+                <div>
+                  <p className="font-medium text-gray-800">{item.eventTitle}</p>
+                  <p className="text-xs text-gray-400">with {item.hostName} · {item.guestEmail}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGuestName(item.guestName);
+                    setGuestEmail(item.guestEmail);
+                    setGuestPhone(item.guestPhone || "");
+                    setNotes(item.notes || "");
+                    if (item.eventTypeId !== eventTypeId && username) {
+                      router.push(`/book/${username}/${item.eventTypeId}?guestName=${encodeURIComponent(item.guestName)}&guestEmail=${encodeURIComponent(item.guestEmail)}&guestPhone=${encodeURIComponent(item.guestPhone || "")}&notes=${encodeURIComponent(item.notes || "")}`);
+                    } else {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  className="px-3 py-1 bg-violet-100 hover:bg-violet-200 text-violet-700 text-xs font-semibold rounded-md transition-colors"
+                >
+                  Book again
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

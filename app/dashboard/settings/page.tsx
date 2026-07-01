@@ -5,8 +5,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { signOut } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import {
   User, Bell, Link2, Shield, CreditCard, Palette, Globe,
@@ -280,15 +279,54 @@ const VIDEO_APPS: IntegrationApp[] = [
   { name: "WhatsApp Video", desc: "Share a WhatsApp video call link with guests.", icon: Video, color: "#25D366" },
 ];
 
-function IntegrationCard({ app }: { app: IntegrationApp }) {
+function IntegrationCard({ 
+  app, 
+  connected, 
+  loading,
+  onDisconnect 
+}: { 
+  app: IntegrationApp; 
+  connected: string[]; 
+  loading: boolean;
+  onDisconnect: (provider: string) => Promise<void>; 
+}) {
   const [connecting, setConnecting] = useState(false);
   const Icon = app.icon;
 
-  const handleConnect = () => {
-    // OAuth wiring comes later — log the intent for now.
-    console.log(`[Integrations] Connect clicked: ${app.name}`);
+  // Determine provider name from app name
+  let provider = "";
+  if (app.name === "Google Calendar" || app.name === "Google Meet") {
+    provider = "google";
+  } else if (app.name === "Zoom") {
+    provider = "zoom";
+  }
+
+  const isSupported = provider !== "";
+  const isConnected = isSupported && connected.includes(provider);
+
+  const handleConnect = async () => {
+    if (!isSupported) {
+      console.log(`[Integrations] ${app.name} connection coming soon`);
+      return;
+    }
     setConnecting(true);
-    setTimeout(() => setConnecting(false), 1200);
+    try {
+      // Trigger NextAuth OAuth flow
+      await signIn(provider, { callbackUrl: "/dashboard/settings" });
+    } catch (err) {
+      console.error(`Failed to connect ${app.name}`, err);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    setConnecting(true);
+    try {
+      await onDisconnect(provider);
+    } finally {
+      setConnecting(false);
+    }
   };
 
   return (
@@ -300,23 +338,96 @@ function IntegrationCard({ app }: { app: IntegrationApp }) {
         <Icon className="w-5 h-5" style={{ color: app.color }} strokeWidth={1.75} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[14px] font-semibold text-white truncate">{app.name}</p>
-        <p className="text-[12px] text-white/40 truncate">{app.desc}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-[14px] font-semibold text-white truncate">{app.name}</p>
+          {!isSupported && (
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/[0.04] text-white/40">
+              Coming Soon
+            </span>
+          )}
+        </div>
+        <p className="text-[12px] text-white/45 truncate">{app.desc}</p>
       </div>
-      <button
-        type="button"
-        onClick={handleConnect}
-        disabled={connecting}
-        className="flex items-center gap-2 px-4 py-2 text-[13px] font-bold rounded-xl flex-shrink-0 bg-[#6C63FF]/15 text-[#6C63FF] hover:bg-[#6C63FF]/25 transition-colors disabled:opacity-60"
-      >
-        {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-        {connecting ? "Connecting…" : "Connect"}
-      </button>
+
+      {loading ? (
+        <div className="w-20 h-9 flex items-center justify-center">
+          <Loader2 className="w-4 h-4 animate-spin text-white/30" />
+        </div>
+      ) : isConnected ? (
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 text-xs text-emerald-400 font-semibold px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/10">
+            <Check className="w-3.5 h-3.5" /> Connected
+          </span>
+          {provider !== "google" && (
+            <button
+              type="button"
+              onClick={handleDisconnect}
+              disabled={connecting}
+              className="px-3 py-1.5 text-[12px] font-bold rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/15 border border-red-500/10 transition-colors"
+            >
+              Disconnect
+            </button>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleConnect}
+          disabled={connecting || !isSupported}
+          className={`flex items-center gap-2 px-4 py-2 text-[13px] font-bold rounded-xl flex-shrink-0 transition-colors ${
+            !isSupported
+              ? "bg-white/[0.04] text-white/20 border border-white/[0.04] cursor-not-allowed"
+              : "bg-[#6C63FF]/15 text-[#6C63FF] hover:bg-[#6C63FF]/25"
+          }`}
+        >
+          {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          {connecting ? "Connecting…" : "Connect"}
+        </button>
+      )}
     </div>
   );
 }
 
 function IntegrationsSection() {
+  const [connected, setConnected] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchIntegrations = async () => {
+    try {
+      const res = await fetch("/api/user/integrations");
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setConnected(data.connected || []);
+      }
+    } catch (err) {
+      console.error("Failed to load integrations", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIntegrations();
+  }, []);
+
+  const onDisconnect = async (provider: string) => {
+    try {
+      const res = await fetch("/api/user/integrations", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+      if (res.ok) {
+        fetchIntegrations();
+      } else {
+        const errData = await res.json();
+        alert(errData.error || "Failed to disconnect");
+      }
+    } catch (err) {
+      console.error("Failed to disconnect", err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -333,7 +444,13 @@ function IntegrationsSection() {
         </div>
         <div className="space-y-3">
           {CALENDAR_APPS.map((app) => (
-            <IntegrationCard key={app.name} app={app} />
+            <IntegrationCard 
+              key={app.name} 
+              app={app} 
+              connected={connected} 
+              loading={loading}
+              onDisconnect={onDisconnect} 
+            />
           ))}
         </div>
       </div>
@@ -345,7 +462,13 @@ function IntegrationsSection() {
         </div>
         <div className="space-y-3">
           {VIDEO_APPS.map((app) => (
-            <IntegrationCard key={app.name} app={app} />
+            <IntegrationCard 
+              key={app.name} 
+              app={app} 
+              connected={connected} 
+              loading={loading}
+              onDisconnect={onDisconnect} 
+            />
           ))}
         </div>
       </div>

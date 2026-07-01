@@ -14,16 +14,20 @@
 // All times are stored in UTC and rendered in UTC.
 // ═══════════════════════════════════════════════
 
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || "smtp.hostinger.com",
+  port: Number(process.env.SMTP_PORT) || 465,
+  secure: true, // true for port 465
+  auth: {
+    user: process.env.SMTP_USER || "noreply@theedmentor.com",
+    pass: process.env.SMTP_PASS || "Oi28klxvyBNsHv?init",
+  },
+});
 
-// onboarding@resend.dev is Resend's always-verified test sender.
-// In test mode Resend only delivers to your own Resend account email.
-// To send to real guests, verify a domain in Resend and set
-// RESEND_FROM_EMAIL="ChronoAI <bookings@yourdomain.com>" — that's the only change needed.
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
+const FROM_EMAIL = `ChronoAI <${process.env.SMTP_USER || "noreply@theedmentor.com"}>`;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
@@ -40,6 +44,8 @@ export interface BookingEmailData {
   startTime: Date;
   endTime: Date;
   notes?: string | null;
+  meetingUrl?: string | null;
+  additionalGuests?: string[];
 }
 
 // Reschedule carries the previous slot so the guest sees what changed.
@@ -151,23 +157,17 @@ async function dispatch(opts: {
   label: string;
 }) {
   try {
-    const { data, error } = await resend.emails.send({
+    const info = await transporter.sendMail({
       from: FROM_EMAIL,
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
     });
 
-    if (error) {
-      console.error(`❌ Resend failed [${opts.label}] → ${opts.to}:`, error);
-      return { success: false as const, error };
-    }
-
-    console.log(`✅ Email sent [${opts.label}] → ${opts.to} (id: ${data?.id})`);
-    return { success: true as const, data };
+    console.log(`✅ Email sent [${opts.label}] → ${opts.to} (id: ${info.messageId})`);
+    return { success: true as const, data: info };
   } catch (error) {
-    // Network / unexpected exceptions only.
-    console.error(`❌ Email exception [${opts.label}] → ${opts.to}:`, error);
+    console.error(`❌ SMTP failed [${opts.label}] → ${opts.to}:`, error);
     return { success: false as const, error };
   }
 }
@@ -175,25 +175,60 @@ async function dispatch(opts: {
 // ─── 1. Booking confirmation → guest ────────────────────
 export async function sendBookingConfirmation(data: BookingEmailData) {
   const intro = await generateGuestIntro(data, "confirmation");
+
+  const joinButton = data.meetingUrl
+    ? `<div style="margin: 20px 0;">
+        <a href="${data.meetingUrl}" target="_blank" style="background-color: ${ACCENT}; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Join Meeting</a>
+       </div>`
+    : "";
+
   const body = `
       <p>${intro}</p>
       ${detailsPanel(data)}
+      ${joinButton}
       <p>See you then! 👋</p>
     `;
-  return dispatch({
+
+  const primaryResult = await dispatch({
     to: data.guestEmail,
     subject: `✅ Booking Confirmed: ${data.eventTitle} with ${data.hostName}`,
     html: shell("Your meeting is confirmed! ✅", ACCENT, body),
     label: "confirmation",
   });
+
+  // Loop through additional guests and send them the invite email
+  if (data.additionalGuests && data.additionalGuests.length > 0) {
+    for (const email of data.additionalGuests) {
+      await dispatch({
+        to: email.trim(),
+        subject: `✅ Booking Invitation: ${data.eventTitle} with ${data.hostName}`,
+        html: shell("You have been invited to a meeting! ✅", ACCENT, body),
+        label: "confirmation-additional",
+      });
+    }
+  }
+
+  return primaryResult;
 }
 
 // ─── 2. New booking → host ──────────────────────────────
 export async function sendHostNotification(data: BookingEmailData) {
+  const joinButton = data.meetingUrl
+    ? `<div style="margin: 20px 0;">
+        <a href="${data.meetingUrl}" target="_blank" style="background-color: ${ACCENT}; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Join Meeting</a>
+       </div>`
+    : "";
+
+  const guestsList = data.additionalGuests && data.additionalGuests.length > 0
+    ? `<p style="margin: 4px 0;"><strong>👥 Additional Guests:</strong> ${data.additionalGuests.join(", ")}</p>`
+    : "";
+
   const body = `
       <p>Hi ${data.hostName},</p>
       <p><strong>${data.guestName}</strong> (${data.guestEmail}) has booked <strong>${data.eventTitle}</strong>.</p>
       ${detailsPanel(data, { label: "Guest notes" })}
+      ${guestsList}
+      ${joinButton}
     `;
   return dispatch({
     to: data.hostEmail,
@@ -323,3 +358,68 @@ export async function sendReminderEmail(data: BookingEmailData) {
     label: "reminder-guest",
   });
 }
+
+// ─── 6. Quick Meeting invites → attendees + host ────────
+export interface QuickMeetingEmailData {
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  hangoutLink: string;
+  hostName: string;
+  hostEmail: string;
+  attendeeEmails: string[];
+}
+
+export async function sendQuickMeetingInvites(data: QuickMeetingEmailData) {
+  const joinButton = data.hangoutLink
+    ? `<div style="margin: 20px 0;">
+        <a href="${data.hangoutLink}" target="_blank" style="background-color: ${ACCENT}; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Join Google Meet</a>
+       </div>`
+    : "";
+
+  const dateStr = fmtDate(data.startTime);
+  const timeStr = timeRange(data.startTime, data.endTime);
+
+  const body = `
+    <p>Hi there,</p>
+    <p>You have been invited to a quick meeting: <strong>${data.title}</strong>, hosted by <strong>${data.hostName}</strong> (${data.hostEmail}).</p>
+    <div style="background: ${PANEL_BG}; padding: 16px; border-radius: 8px; margin: 16px 0;">
+      <p style="margin: 4px 0;"><strong>📅 Date:</strong> ${dateStr}</p>
+      <p style="margin: 4px 0;"><strong>🕐 Time:</strong> ${timeStr}</p>
+    </div>
+    ${joinButton}
+    <p>See you then! 👋</p>
+  `;
+
+  // Deduplicate and filter emails
+  const recipients = Array.from(
+    new Set([data.hostEmail, ...data.attendeeEmails])
+  ).map((email) => email.trim()).filter(Boolean);
+
+  const results = [];
+
+  for (const email of recipients) {
+    const isHost = email.toLowerCase() === data.hostEmail.toLowerCase();
+    const subject = isHost
+      ? `📅 Quick Meeting Scheduled: ${data.title}`
+      : `📅 Meeting Invitation: ${data.title} with ${data.hostName}`;
+
+    const res = await dispatch({
+      to: email,
+      subject,
+      html: shell(
+        isHost ? "Your quick meeting is scheduled! 📅" : "You have been invited to a meeting! 📅",
+        ACCENT,
+        body
+      ),
+      label: "quick-meeting-invite",
+    });
+    results.push(res);
+  }
+
+  return {
+    success: results.every((r) => r.success),
+    results,
+  };
+}
+

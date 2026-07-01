@@ -12,6 +12,7 @@ import {
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { QuickCreateModal } from "./QuickCreateModal";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
 const MINI_TREND = [{ v: 9 }, { v: 14 }, { v: 11 }, { v: 18 }, { v: 22 }, { v: 28 }, { v: 30 }];
@@ -149,6 +150,7 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
   const router = useRouter();
   const [time, setTime] = useState(new Date());
   const [copied, setCopied] = useState(false);
+  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -183,7 +185,7 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
         </div>
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => router.push("/dashboard/bookings")}
+            onClick={() => setIsQuickCreateOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.03] active:scale-95 transition-transform"
           >
             <Zap className="w-4 h-4" /> Quick Book
@@ -302,6 +304,11 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
           </div>
         </aside>
       </div>
+      <QuickCreateModal
+        isOpen={isQuickCreateOpen}
+        onClose={() => setIsQuickCreateOpen(false)}
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }

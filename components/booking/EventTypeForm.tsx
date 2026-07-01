@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, DollarSign, Loader2 } from "lucide-react";
+import { Calendar, Clock, DollarSign, Loader2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ export function EventTypeForm() {
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(30);
   const [price, setPrice] = useState("0");
+  const [locationType, setLocationType] = useState("MEET");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,7 @@ export function EventTypeForm() {
           description: description.trim(),
           duration,
           price: numericPrice,
+          locationType,
         }),
       });
 
@@ -103,6 +105,24 @@ export function EventTypeForm() {
               rows={3}
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
+          </div>
+
+          {/* Location / Meeting Platform */}
+          <div className="space-y-2">
+            <Label htmlFor="locationType" className="flex items-center gap-1.5">
+              <Video className="w-4 h-4 text-gray-400" />
+              Preferred Meeting Platform
+            </Label>
+            <select
+              id="locationType"
+              value={locationType}
+              onChange={(e) => setLocationType(e.target.value)}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="MEET">Google Meet</option>
+              <option value="ZOOM">Zoom</option>
+              <option value="IN_PERSON">In Person</option>
+            </select>
           </div>
 
           {/* Duration */}
