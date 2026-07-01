@@ -120,3 +120,110 @@
 .lp .feat-card:hover { transform: translateY(-8px) rotate(-1.5deg); border-color: var(--c); box-shadow: 0 24px 50px -14px var(--cs); }
 .lp .feat-card:hover h3 { color: var(--c); }
 
+
+/* ===================== Light Mode — Global Dashboard Overrides ===================== */
+/* Applied when ThemeApplier adds .light to <html>                                   */
+
+/* ── Scope all light mode overrides to main content area (right panel) only ── */
+html.light body                     { background-color: #EFF6FF !important; }
+
+/* Main layout panel background matches the notifications page gradient */
+html.light main,
+html.light main.bg-\[\#0b1020\],
+html.light main .bg-\[\#0b1020\]     { background: linear-gradient(to bottom, #EFF6FF, #DBEAFE) !important; color: #1a1d2e !important; }
+
+/* Notifications page already has its own gradient — keep it as-is */
+html.light main .bg-gradient-to-b   { background: linear-gradient(to bottom, #EFF6FF, #DBEAFE) !important; }
+
+/* Dashboard card containers adapt to clean white cards */
+html.light main .bg-\[\#131a2e\]     { background-color: #ffffff !important; }
+html.light main .bg-\[\#0f1629\]     { background-color: #f0f4ff !important; }
+
+/* ── SVG icons inside main: inherit color from parent so they follow text color ── */
+html.light main svg                  { color: inherit !important; }
+
+/* ── text-white (solid) inside main ── */
+html.light main .text-white          { color: #1a1d2e !important; }
+
+/* ── text-white/* opacity variants inside main ── */
+html.light main .text-white\/10      { color: #b0b5cc !important; }
+html.light main .text-white\/20      { color: #8b93b5 !important; }
+html.light main .text-white\/30      { color: #6b7591 !important; }
+html.light main .text-white\/40      { color: #4f5778 !important; }
+html.light main .text-white\/45      { color: #454e70 !important; }
+html.light main .text-white\/50      { color: #3a415a !important; }
+html.light main .text-white\/55      { color: #2e354e !important; }
+html.light main .text-white\/60      { color: #242b42 !important; }
+html.light main .text-white\/65      { color: #242b42 !important; }
+html.light main .text-white\/70      { color: #1f253b !important; }
+html.light main .text-white\/80      { color: #151a2d !important; }
+html.light main .text-white\/90      { color: #0f1322 !important; }
+
+/* Bracket-notation variants (e.g. text-white/[0.06]) inside main */
+html.light main [class*="text-white/\[0"] { color: #6b7591 !important; }
+
+/* Catch-all fallback inside main */
+html.light main [class*="text-white/"]    { color: #454e70 !important; }
+
+/* ── Restore white text INSIDE colored / gradient buttons & badges inside main ── */
+html.light main [class*="bg-gradient-to-"] .text-white,
+html.light main [class*="bg-gradient-to-"][class*="text-white"],
+html.light main [class*="bg-gradient-to-"] [class*="text-white/"] { color: #ffffff !important; }
+
+html.light main [class*="bg-emerald"] .text-white,
+html.light main [class*="bg-red"]     .text-white,
+html.light main [class*="bg-blue"]    .text-white,
+html.light main [class*="bg-indigo"]  .text-white { color: #ffffff !important; }
+
+html.light main .bg-\[\#6C63FF\]     .text-white,
+html.light main .bg-\[\#3B82F6\]     .text-white,
+html.light main .bg-\[\#10B981\]     .text-white,
+html.light main .bg-\[\#EF4444\]     .text-white,
+html.light main .bg-\[\#1D4ED8\]     .text-white,
+html.light main .bg-\[\#1E3A8A\]     .text-white { color: #ffffff !important; }
+
+/* Icons INSIDE gradient/colored spans inside main stay white */
+html.light main [class*="bg-gradient-to-"] svg { color: #ffffff !important; }
+
+/* ── Grayscale text inside main ── */
+html.light main .text-gray-900  { color: #111827 !important; }
+html.light main .text-gray-800  { color: #1f2937 !important; }
+html.light main .text-gray-700  { color: #374151 !important; }
+html.light main .text-gray-600  { color: #4b5563 !important; }
+html.light main .text-gray-500  { color: #6b7280 !important; }
+html.light main .text-gray-400  { color: #9ca3af !important; }
+
+/* ── Borders inside main ── */
+html.light main [class*="border-white"]  { border-color: #bfdbfe !important; }
+html.light main [class*="divide-white"]  { border-color: #bfdbfe !important; }
+
+/* ── Translucent bg-white/* → blue-tinted equivalents inside main ── */
+html.light main .bg-white                { background-color: #ffffff !important; }
+html.light main [class*="bg-white/"]     { background-color: #e8f0fe !important; }
+
+/* ── Forms inside main ── */
+html.light main input:not([type="color"]),
+html.light main textarea,
+html.light main select {
+  color:            #1a1d2e !important;
+  background-color: #ffffff !important;
+  border-color:     #bfdbfe !important;
+}
+html.light main input::placeholder,
+html.light main textarea::placeholder    { color: #8b93b5 !important; }
+
+/* ── Sidebar-like components (e.g. settings nav) nested inside main ── */
+html.light main .bg-\[\#1e3a5f\]          { background-color: #ede9ff !important; }
+html.light main .hover\:text-white:hover  { color: #1a1d2e !important; }
+
+/* ── Danger hover inside main ── */
+html.light main .hover\:bg-red-500\/20:hover { background-color: #fee2e2 !important; }
+html.light main .hover\:text-red-300:hover   { color: #dc2626 !important; }
+
+/* Glassmorphism overrides for public header */
+html.dark .lp .glass {
+  background: rgba(11, 16, 32, 0.7) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+

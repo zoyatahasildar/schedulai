@@ -87,7 +87,7 @@ export default function FeatureCards() {
             key={title}
             tabIndex={0}
             onPointerDown={spawnRipple}
-            className="feat-card group relative overflow-hidden rounded-2xl bg-white p-6 border border-violet-100 outline-none cursor-pointer"
+            className="feat-card group relative overflow-hidden rounded-2xl bg-white dark:bg-[#131a2e] p-6 border border-violet-100 dark:border-white/[0.05] outline-none cursor-pointer"
             style={
               {
                 "--theme": theme,
@@ -109,8 +109,8 @@ export default function FeatureCards() {
               >
                 <Icon className="w-6 h-6" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">{desc}</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+              <p className="text-gray-600 dark:text-white/60 text-sm leading-relaxed">{desc}</p>
             </div>
           </div>
         ))}

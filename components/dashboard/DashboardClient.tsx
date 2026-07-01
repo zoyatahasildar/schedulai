@@ -7,8 +7,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Calendar, Users, TrendingUp, IndianRupee, Plus, ArrowRight,
-  Sparkles, Clock, Zap, BookOpen, BarChart3, Link2, Settings, Check,
+  Calendar, Users, TrendingUp, IndianRupee, ArrowRight,
+  Sparkles, Clock, Zap, BarChart3,
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
@@ -127,11 +127,10 @@ function MiniCalendar() {
                 <span className="w-7 h-7" />
               ) : (
                 <span
-                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-[12px] font-medium transition-colors ${
-                    isToday
+                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-[12px] font-medium transition-colors ${isToday
                       ? "bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] text-white font-bold shadow-md shadow-[#6C63FF]/30"
                       : "text-white/65 hover:bg-white/10"
-                  }`}
+                    }`}
                 >
                   {d}
                 </span>
@@ -167,14 +166,7 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const QUICK_ACTIONS = [
-    { icon: Plus, label: "New Event", color: "#6C63FF", onClick: () => router.push("/dashboard/event-types?new=1") },
-    { icon: Link2, label: copied ? "Copied!" : "Copy Link", color: "#00D4FF", onClick: copyLink },
-    { icon: BarChart3, label: "View Analytics", color: "#EC4899", onClick: () => router.push("/admin") },
-    { icon: BookOpen, label: "Manage Bookings", color: "#F59E0B", onClick: () => router.push("/dashboard/bookings") },
-    { icon: Clock, label: "Set Availability", color: "#10B981", onClick: () => router.push("/dashboard/availability") },
-    { icon: Settings, label: "Settings", color: "#8B5CF6", onClick: () => router.push("/dashboard/settings") },
-  ];
+
 
   return (
     <div className="min-h-screen bg-[#0b1020] text-white px-6 py-6">
@@ -240,66 +232,42 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
             <StatCard title="Revenue This Month" value={stats.revenue} change="this month" color="#F59E0B" icon={IndianRupee} prefix="₹" delay={240} />
           </div>
 
-          {/* Upcoming + Quick actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Upcoming Bookings */}
-            <div className="bg-[#131a2e] border border-white/[0.06] rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[15px] font-bold text-white">Upcoming Bookings</h3>
-                <button onClick={() => router.push("/dashboard/bookings")} className="text-[12px] font-bold text-[#8b9dff] bg-[#6C63FF]/15 px-3 py-1 rounded-full hover:bg-[#6C63FF]/25 transition-colors flex items-center gap-1">
-                  View all <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-              {upcoming.length === 0 ? (
-                <p className="text-[13px] text-white/35 text-center py-10">No upcoming bookings yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {upcoming.map((b, i) => {
-                    const s = STATUS_STYLE[b.status] ?? STATUS_STYLE.confirmed;
-                    const ini = b.name.split(" ").map((n) => n[0]).join("").slice(0, 2);
-                    return (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer group">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
-                          style={{ background: `linear-gradient(135deg, ${b.color}, ${b.color}99)` }}>
-                          {ini}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-white/90 group-hover:text-white truncate transition-colors">{b.name}</p>
-                          <p className="text-[11px] text-white/40 flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> {b.time} · {b.duration}
-                          </p>
-                        </div>
-                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${s.bg} ${s.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                          {b.status}
-                        </span>
+          {/* Upcoming Bookings */}
+          <div className="bg-[#131a2e] border border-white/[0.06] rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[15px] font-bold text-white">Upcoming Bookings</h3>
+              <button onClick={() => router.push("/dashboard/bookings")} className="text-[12px] font-bold text-[#8b9dff] bg-[#6C63FF]/15 px-3 py-1 rounded-full hover:bg-[#6C63FF]/25 transition-colors flex items-center gap-1">
+                View all <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+            {upcoming.length === 0 ? (
+              <p className="text-[13px] text-white/35 text-center py-10">No upcoming bookings yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {upcoming.map((b, i) => {
+                  const s = STATUS_STYLE[b.status] ?? STATUS_STYLE.confirmed;
+                  const ini = b.name.split(" ").map((n) => n[0]).join("").slice(0, 2);
+                  return (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer group">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${b.color}, ${b.color}99)` }}>
+                        {ini}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-[#131a2e] border border-white/[0.06] rounded-2xl p-5">
-              <h3 className="text-[15px] font-bold text-white mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {QUICK_ACTIONS.map((a, i) => (
-                  <button
-                    key={i}
-                    onClick={a.onClick}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] hover:-translate-y-0.5 transition-all cursor-pointer border border-white/[0.06]"
-                  >
-                    {a.label === "Copied!" ? (
-                      <Check className="w-5 h-5 text-emerald-400" strokeWidth={2} />
-                    ) : (
-                      <a.icon className="w-5 h-5" style={{ color: a.color }} strokeWidth={1.75} />
-                    )}
-                    <span className="text-[12px] font-semibold text-white/75 text-center leading-tight">{a.label}</span>
-                  </button>
-                ))}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-white/90 group-hover:text-white truncate transition-colors">{b.name}</p>
+                        <p className="text-[11px] text-white/40 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {b.time} · {b.duration}
+                        </p>
+                      </div>
+                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${s.bg} ${s.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                        {b.status}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
         </div>
 

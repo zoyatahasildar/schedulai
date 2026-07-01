@@ -7,10 +7,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
-  Zap, LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut, Bell
+  Zap, LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut, Bell,
+  CheckCircle2, XCircle, Calendar, Plus, X, Pencil, EyeOff, CreditCard
 } from "lucide-react";
+import { useBillingStore } from "@/store/billingStore";
 import Image from "next/image";
 
 interface Props {
@@ -25,6 +27,7 @@ const PRIMARY_NAV = [
   { href: "/dashboard/bookings", label: "Bookings", icon: BookOpen },
   { href: "/dashboard/availability", label: "Availability", icon: Clock },
   { href: "/admin", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: NOTIF_HREF, label: "Notifications", icon: Bell },
 ];
 
@@ -35,20 +38,90 @@ function initials(name?: string | null) {
   return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 }
 
+const PLAN_LABELS: Record<string, { label: string; color: string }> = {
+  free: { label: "Free plan", color: "text-white/40" },
+  pro: { label: "Pro plan", color: "text-[#6C63FF]" },
+  promax: { label: "Pro Max plan", color: "text-[#00D4FF]" },
+};
+
+function PlanLabel() {
+  const plan = useBillingStore((s) => s.currentPlan);
+  const info = PLAN_LABELS[plan] ?? PLAN_LABELS.free;
+  return <p className={`text-[10px] leading-tight font-medium ${info.color}`}>{info.label}</p>;
+}
+
+const POPUP_ICONS = {
+  new: CheckCircle2,
+  pending: Clock,
+  completed: Calendar,
+  cancelled: XCircle,
+  event_created: Plus,
+  event_updated: Pencil,
+  event_deactivated: EyeOff,
+} as const;
+
+const POPUP_COLORS = {
+  new: "#10B981",
+  pending: "#F59E0B",
+  completed: "#6C63FF",
+  cancelled: "#EF4444",
+  event_created: "#10B981",
+  event_updated: "#00B5CC",
+  event_deactivated: "#94A3B8",
+} as const;
+
 export function DashboardSidebar({ user }: Props) {
   const pathname = usePathname();
   const [notifCount, setNotifCount] = useState(0);
+  const [activePopup, setActivePopup] = useState<any | null>(null);
+  const lastMaxTimeRef = useRef<number>(0);
 
-  // Poll the notification feed just to drive the badge count on the nav item.
+  useEffect(() => {
+    if (activePopup) {
+      const t = setTimeout(() => setActivePopup(null), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [activePopup]);
+
+  // Poll the notification feed just to drive the badge count on the nav item and trigger popups.
   useEffect(() => {
     let cancelled = false;
     const load = () => {
+      if (pathname === NOTIF_HREF) {
+        setNotifCount(0);
+        return;
+      }
+
+      const seen = Number(localStorage.getItem("chronoai_notif_seen") || 0);
+
       fetch("/api/notifications/feed")
         .then((r) => (r.ok ? r.json() : { bookings: [], events: [] }))
         .then((d) => {
           if (!cancelled) {
-            const count = (d.bookings?.length ?? 0) + (d.events?.length ?? 0);
-            setNotifCount(count);
+            const allItems = [...(d.bookings ?? []), ...(d.events ?? [])];
+            
+            // Check for new notifications to trigger the popup
+            const times = allItems.map((n) => new Date(n.at).getTime());
+            const maxTime = times.length > 0 ? Math.max(...times) : Date.now();
+
+            if (lastMaxTimeRef.current === 0) {
+              lastMaxTimeRef.current = maxTime;
+            } else {
+              const newNotifs = allItems.filter(
+                (n) => new Date(n.at).getTime() > lastMaxTimeRef.current
+              );
+              if (newNotifs.length > 0) {
+                newNotifs.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+                setActivePopup(newNotifs[0]);
+                lastMaxTimeRef.current = Math.max(...newNotifs.map((n) => new Date(n.at).getTime()));
+              }
+            }
+
+            // Calculate the sidebar badge count
+            const unreadCount = allItems.filter(
+              (n) => new Date(n.at).getTime() > seen
+            ).length;
+            setNotifCount(unreadCount);
           }
         })
         .catch(() => {});
@@ -56,7 +129,7 @@ export function DashboardSidebar({ user }: Props) {
     load();
     const t = setInterval(load, 30000);
     return () => { cancelled = true; clearInterval(t); };
-  }, []);
+  }, [pathname]);
 
   return (
     <aside className="w-[300px] flex-shrink-0 bg-[#0d1326] border-r border-white/5 sticky top-0 self-start h-screen flex flex-col p-4 overflow-hidden">
@@ -86,9 +159,7 @@ export function DashboardSidebar({ user }: Props) {
               <Icon className="w-[18px] h-[18px]" strokeWidth={active ? 2 : 1.75} />
               <span className="flex-1">{label}</span>
               {isNotif && notifCount > 0 && (
-                <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-[#3B82F6] text-white text-[10px] font-bold flex items-center justify-center">
-                  {notifCount > 99 ? "99+" : notifCount}
-                </span>
+                <span className="w-2 h-2 rounded-full bg-[#3B82F6] flex-shrink-0 animate-pulse" />
               )}
             </Link>
           );
@@ -125,7 +196,7 @@ export function DashboardSidebar({ user }: Props) {
           )}
           <div className="min-w-0">
             <p className="text-[12px] font-semibold text-white leading-tight truncate">{user.name ?? "Your account"}</p>
-            <p className="text-[10px] text-white/40 leading-tight">Free plan</p>
+            <PlanLabel />
           </div>
         </div>
         <button
@@ -135,6 +206,34 @@ export function DashboardSidebar({ user }: Props) {
           <LogOut className="w-[18px] h-[18px]" /> Log out
         </button>
       </div>
+
+      {/* Active Notification Popup */}
+      {activePopup && (
+        <div className="fixed top-6 right-6 z-[9999] w-80 bg-[#131a2e] border border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.5)] rounded-2xl p-4 flex gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
+          {(() => {
+            const Icon = POPUP_ICONS[activePopup.type as keyof typeof POPUP_ICONS] ?? CheckCircle2;
+            const color = POPUP_COLORS[activePopup.type as keyof typeof POPUP_COLORS] ?? "#6C63FF";
+            return (
+              <>
+                <span className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}15` }}>
+                  <Icon className="w-5 h-5" style={{ color }} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-bold text-white/40 uppercase tracking-wider">New Activity</p>
+                  <p className="text-[14px] font-bold text-white mt-0.5 leading-tight">{activePopup.title}</p>
+                  <p className="text-[13px] text-white/60 mt-1 leading-snug">{activePopup.message}</p>
+                </div>
+                <button
+                  onClick={() => setActivePopup(null)}
+                  className="text-white/45 hover:text-white transition-colors flex-shrink-0 self-start p-0.5"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            );
+          })()}
+        </div>
+      )}
     </aside>
   );
 }

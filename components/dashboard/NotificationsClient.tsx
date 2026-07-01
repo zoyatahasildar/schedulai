@@ -92,6 +92,19 @@ export function NotificationsClient() {
     }
   };
 
+  const [pageSeenTime, setPageSeenTime] = useState<number>(0);
+
+  useEffect(() => {
+    const prevSeen = Number(localStorage.getItem("chronoai_notif_seen") || 0);
+    setPageSeenTime(prevSeen);
+
+    const timer = setTimeout(() => {
+      localStorage.setItem("chronoai_notif_seen", String(Date.now()));
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     load();
     const t = setInterval(() => load(), 30000);
@@ -102,7 +115,7 @@ export function NotificationsClient() {
   const isEmpty = !loading && total === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#EFF6FF] to-[#DBEAFE]">
+    <div className="min-h-screen bg-[#0b1020] text-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-6">
@@ -111,16 +124,16 @@ export function NotificationsClient() {
               <Bell className="w-5 h-5 text-white" />
             </span>
             <div>
-              <h1 className="text-[22px] sm:text-[26px] font-bold text-[#1E3A8A] leading-tight">Notifications</h1>
-              <p className="text-[13px] text-[#1E40AF]/70">
-                Booking and event-type activity {total > 0 && `· ${total} item${total > 1 ? "s" : ""}`}
+              <h1 className="text-[22px] sm:text-[26px] font-bold text-white leading-tight">Notifications</h1>
+              <p className="text-[13px] text-white/50">
+                Booking and event-type activity
               </p>
             </div>
           </div>
           <button
             onClick={() => load(true)}
             disabled={refreshing}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white text-[#1E3A8A] text-[13px] font-semibold border border-[#BFDBFE] shadow-sm hover:bg-[#EFF6FF] transition-colors disabled:opacity-60"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.06] text-white/80 text-[13px] font-semibold border border-white/[0.08] shadow-sm hover:bg-white/[0.1] transition-colors disabled:opacity-60"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -128,76 +141,76 @@ export function NotificationsClient() {
         </div>
 
         {/* Filter toggle — jump straight to either group */}
-        {!loading && !isEmpty && (
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => setTab("bookings")}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors ${
-                tab === "bookings"
-                  ? "bg-[#3B82F6] text-white border-[#3B82F6] shadow-sm shadow-[#3B82F6]/30"
-                  : "bg-white text-[#1E3A8A] border-[#BFDBFE] hover:bg-[#EFF6FF]"
-              }`}
-            >
-              <CheckCircle className="w-4 h-4" />
-              Bookings
-              <span className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                tab === "bookings" ? "bg-white/25 text-white" : "bg-[#DBEAFE] text-[#1E3A8A]"
-              }`}>
-                {bookings.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setTab("events")}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors ${
-                tab === "events"
-                  ? "bg-[#3B82F6] text-white border-[#3B82F6] shadow-sm shadow-[#3B82F6]/30"
-                  : "bg-white text-[#1E3A8A] border-[#BFDBFE] hover:bg-[#EFF6FF]"
-              }`}
-            >
-              <Pencil className="w-4 h-4" />
-              Event Types
-              <span className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                tab === "events" ? "bg-white/25 text-white" : "bg-[#DBEAFE] text-[#1E3A8A]"
-              }`}>
-                {events.length}
-              </span>
-            </button>
-          </div>
-        )}
+        {!loading && !isEmpty && (() => {
+          const hasNewBookings = bookings.some((n) => new Date(n.at).getTime() > pageSeenTime);
+          const hasNewEvents = events.some((n) => new Date(n.at).getTime() > pageSeenTime);
+          return (
+            <div className="flex gap-2 mb-6">
+              <button
+                onClick={() => setTab("bookings")}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors ${
+                  tab === "bookings"
+                    ? "bg-[#3B82F6] text-white border-[#3B82F6] shadow-sm shadow-[#3B82F6]/30"
+                    : "bg-white/[0.06] text-white/70 border-white/[0.08] hover:bg-white/[0.1]"
+                }`}
+              >
+                <CheckCircle className="w-4 h-4" />
+                Bookings
+                {hasNewBookings && (
+                  <span className={`w-2 h-2 rounded-full ${tab === "bookings" ? "bg-white animate-pulse" : "bg-[#3B82F6] animate-pulse"}`} />
+                )}
+              </button>
+              <button
+                onClick={() => setTab("events")}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold border transition-colors ${
+                  tab === "events"
+                    ? "bg-[#3B82F6] text-white border-[#3B82F6] shadow-sm shadow-[#3B82F6]/30"
+                    : "bg-white/[0.06] text-white/70 border-white/[0.08] hover:bg-white/[0.1]"
+                }`}
+              >
+                <Pencil className="w-4 h-4" />
+                Event Types
+                {hasNewEvents && (
+                  <span className={`w-2 h-2 rounded-full ${tab === "events" ? "bg-white animate-pulse" : "bg-[#3B82F6] animate-pulse"}`} />
+                )}
+              </button>
+            </div>
+          );
+        })()}
 
         {/* Loading */}
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-20 text-[#1E3A8A]/70 text-sm">
+          <div className="flex items-center justify-center gap-2 py-20 text-white/50 text-sm">
             <span className="w-5 h-5 border-2 border-[#3B82F6]/30 border-t-[#3B82F6] animate-spin rounded-full" />
             Loading notifications...
           </div>
         ) : isEmpty ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-[#BFDBFE] shadow-sm">
-            <Bell className="w-10 h-10 text-[#93C5FD] mx-auto mb-3" />
-            <p className="text-[15px] font-semibold text-[#1E3A8A]">You&apos;re all caught up! 🎉</p>
-            <p className="text-[13px] text-[#1E40AF]/60 mt-1">New bookings and event changes will show up here.</p>
+          <div className="text-center py-20 bg-[#131a2e] rounded-2xl border border-white/[0.06] shadow-sm">
+            <Bell className="w-10 h-10 text-[#3B82F6]/60 mx-auto mb-3" />
+            <p className="text-[15px] font-semibold text-white">You&apos;re all caught up! 🎉</p>
+            <p className="text-[13px] text-white/50 mt-1">New bookings and event changes will show up here.</p>
           </div>
         ) : (
           <div className="space-y-8">
             {/* Empty state for the active tab */}
             {tab === "bookings" && bookings.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-2xl border border-[#BFDBFE] shadow-sm">
-                <CheckCircle className="w-9 h-9 text-[#93C5FD] mx-auto mb-2" />
-                <p className="text-[14px] font-semibold text-[#1E3A8A]">No booking activity yet.</p>
+              <div className="text-center py-16 bg-[#131a2e] rounded-2xl border border-white/[0.06] shadow-sm">
+                <CheckCircle className="w-9 h-9 text-[#3B82F6]/60 mx-auto mb-2" />
+                <p className="text-[14px] font-semibold text-white">No booking activity yet.</p>
               </div>
             )}
             {tab === "events" && events.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-2xl border border-[#BFDBFE] shadow-sm">
-                <Pencil className="w-9 h-9 text-[#93C5FD] mx-auto mb-2" />
-                <p className="text-[14px] font-semibold text-[#1E3A8A]">No event-type activity yet.</p>
+              <div className="text-center py-16 bg-[#131a2e] rounded-2xl border border-white/[0.06] shadow-sm">
+                <Pencil className="w-9 h-9 text-[#3B82F6]/60 mx-auto mb-2" />
+                <p className="text-[14px] font-semibold text-white">No event-type activity yet.</p>
               </div>
             )}
 
             {/* ── Bookings ─────────────────────────── */}
             {tab === "bookings" && bookings.length > 0 && (
               <section>
-                <h2 className="text-[12px] font-bold uppercase tracking-wider text-[#1E40AF]/60 mb-3 px-1">
-                  Bookings ({bookings.length})
+                <h2 className="text-[12px] font-bold uppercase tracking-wider text-white/40 mb-3 px-1">
+                  Bookings
                 </h2>
                 <div className="space-y-3">
                   {bookings.map((n) => {
@@ -210,23 +223,23 @@ export function NotificationsClient() {
                     return (
                       <div
                         key={n.id}
-                        className="bg-white border border-[#BFDBFE] border-l-4 border-l-[#3B82F6] rounded-xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                        className="bg-[#131a2e] border border-white/[0.06] border-l-4 border-l-[#3B82F6] rounded-xl p-4 shadow-sm hover:border-white/[0.12] hover:-translate-y-0.5 transition-all duration-200"
                       >
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-8 h-8 rounded-lg bg-[#EBF5FF] flex items-center justify-center flex-shrink-0">
+                            <span className="w-8 h-8 rounded-lg bg-[#3B82F6]/15 flex items-center justify-center flex-shrink-0">
                               <Icon className="w-4 h-4 text-[#3B82F6]" />
                             </span>
                             <div className="min-w-0">
-                              <p className="text-[14px] font-bold text-[#1E3A8A] leading-tight truncate">{n.title}</p>
-                              <p className="text-[11px] text-[#1E40AF]/60">{rel(n.at)}</p>
+                              <p className="text-[14px] font-bold text-white leading-tight truncate">{n.title}</p>
+                              <p className="text-[11px] text-white/40">{rel(n.at)}</p>
                             </div>
                           </div>
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0 ${st.cls}`}>
                             {st.label}
                           </span>
                         </div>
-                        <div className="grid sm:grid-cols-3 gap-2 text-[12px] text-[#1E3A8A]/80 font-medium pl-10">
+                        <div className="grid sm:grid-cols-3 gap-2 text-[12px] text-white/60 font-medium pl-10">
                           {n.guestName && (
                             <span className="flex items-center gap-1.5">
                               <User className="w-3.5 h-3.5 text-[#3B82F6]/70 flex-shrink-0" />
@@ -256,8 +269,8 @@ export function NotificationsClient() {
             {/* ── Event Types ──────────────────────── */}
             {tab === "events" && events.length > 0 && (
               <section>
-                <h2 className="text-[12px] font-bold uppercase tracking-wider text-[#1E40AF]/60 mb-3 px-1">
-                  Event Types ({events.length})
+                <h2 className="text-[12px] font-bold uppercase tracking-wider text-white/40 mb-3 px-1">
+                  Event Types
                 </h2>
                 <div className="space-y-3">
                   {events.map((n) => {
@@ -265,17 +278,17 @@ export function NotificationsClient() {
                     return (
                       <div
                         key={n.id}
-                        className="bg-white border border-[#BFDBFE] border-l-4 border-l-[#60A5FA] rounded-xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                        className="bg-[#131a2e] border border-white/[0.06] border-l-4 border-l-[#60A5FA] rounded-xl p-4 shadow-sm hover:border-white/[0.12] hover:-translate-y-0.5 transition-all duration-200"
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className="w-8 h-8 rounded-lg bg-[#EBF5FF] flex items-center justify-center flex-shrink-0">
+                          <span className="w-8 h-8 rounded-lg bg-[#3B82F6]/15 flex items-center justify-center flex-shrink-0">
                             <Icon className="w-4 h-4 text-[#2563EB]" />
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-[14px] font-bold text-[#1E3A8A] leading-tight truncate">{n.title}</p>
-                            <p className="text-[12px] text-[#1E3A8A]/70 font-medium truncate">{n.message}</p>
+                            <p className="text-[14px] font-bold text-white leading-tight truncate">{n.title}</p>
+                            <p className="text-[12px] text-white/55 font-medium truncate">{n.message}</p>
                           </div>
-                          <span className="text-[11px] text-[#1E40AF]/55 flex-shrink-0">{rel(n.at)}</span>
+                          <span className="text-[11px] text-white/40 flex-shrink-0">{rel(n.at)}</span>
                         </div>
                       </div>
                     );

@@ -143,7 +143,12 @@ export default async function AdminPage() {
       <DashboardSidebar user={user} />
       <main className="flex-1 min-w-0 bg-[#E8EDF4]">
         <AnalyticsClient
-          kpis={{ total, active, revenue: Math.round(revenue) }}
+          kpis={{
+            total,
+            active,
+            revenue: Math.round(revenue),
+            conversion: total > 0 ? Math.round((confirmed / total) * 100) : 0,
+          }}
           trend={trend}
           byDay={byDay}
           byType={byType}
