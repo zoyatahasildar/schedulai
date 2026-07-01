@@ -4,7 +4,7 @@
 // Owned by: Lead
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import {
   CreditCard, Check, X, Crown, Sparkles, Zap,
@@ -36,10 +36,7 @@ export function BillingClient() {
   const [cycle, setCycle] = useState<BillingCycle>(billing.billingCycle);
   const [upgrading, setUpgrading] = useState<PlanId | null>(null);
   const [showConfirm, setShowConfirm] = useState<{ planId: PlanId; action: "upgrade" | "downgrade" } | null>(null);
-  const [showAddCard, setShowAddCard] = useState(false);
-  const [editingBilling, setEditingBilling] = useState(false);
-  const [billingForm, setBillingForm] = useState(billing.billingInfo);
-  const [billingSaved, setBillingSaved] = useState(false);
+
   const [toast, setToast] = useState<{ visible: boolean; message: string; variant: "success" | "error" }>({
     visible: false, message: "", variant: "success",
   });
@@ -61,74 +58,45 @@ export function BillingClient() {
     setShowConfirm({ planId, action: targetIdx > currentIdx ? "upgrade" : "downgrade" });
   };
 
-  const confirmPlanChange = async () => {
-    if (!showConfirm) return;
-    const { planId, action } = showConfirm;
+  const handleDowngrade = () => {
+    if (!showConfirm || showConfirm.action !== "downgrade") return;
+    const { planId } = showConfirm;
+    const plan = PLANS.find((p) => p.id === planId)!;
+
+    billing.downgradePlan(planId);
+    showToast(`Switched to ${plan.name} plan`);
     setShowConfirm(null);
-    setUpgrading(planId);
-
-    try {
-      const plan = PLANS.find((p) => p.id === planId)!;
-      const amount = cycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
-
-      if (planId !== "free") {
-        const result = await initializePayment({
-          amount: amount * 100, // paise
-          planId,
-          cycle,
-          customerEmail: session?.user?.email || "",
-          customerName: session?.user?.name || "",
-        });
-
-        if (!result.success) {
-          showToast(result.error || "Payment failed", "error");
-          setUpgrading(null);
-          return;
-        }
-      }
-
-      if (action === "upgrade") {
-        billing.upgradePlan(planId, cycle);
-      } else {
-        billing.downgradePlan(planId);
-      }
-      showToast(
-        action === "upgrade"
-          ? `Upgraded to ${plan.name} plan! 🎉`
-          : `Switched to ${plan.name} plan`
-      );
-    } catch {
-      showToast("Something went wrong. Please try again.", "error");
-    } finally {
-      setUpgrading(null);
-    }
   };
 
-  const handleAddCard = () => {
-    // Mock adding a card
-    const types: PaymentMethod["type"][] = ["visa", "mastercard", "amex", "rupay"];
-    billing.addPaymentMethod({
-      type: types[Math.floor(Math.random() * types.length)],
-      last4: String(Math.floor(1000 + Math.random() * 9000)),
-      expiry: `${String(Math.floor(1 + Math.random() * 12)).padStart(2, "0")}/${Math.floor(26 + Math.random() * 4)}`,
-      isDefault: billing.paymentMethods.length === 0,
-    });
-    setShowAddCard(false);
-    showToast("Payment method added successfully");
-  };
 
-  const handleSaveBilling = () => {
-    billing.updateBillingInfo(billingForm);
-    setBillingSaved(true);
-    setEditingBilling(false);
-    showToast("Billing information saved");
-    setTimeout(() => setBillingSaved(false), 2000);
-  };
 
   const downloadInvoice = (invoiceId: string) => {
     // Placeholder for PDF download
     showToast(`Downloading ${invoiceId}...`);
     console.log(`[Billing] Download invoice: ${invoiceId}`);
+  };
+
+  const handleExportCSV = () => {
+    if (billing.invoices.length === 0) {
+      showToast("No invoices to export.", "error");
+      return;
+    }
+
+    const headers = ["Invoice ID", "Date", "Plan", "Amount (INR)", "Status"];
+    const rows = billing.invoices.map((inv) => 
+      [inv.id, inv.date, inv.plan, inv.amount, inv.status].join(",")
+    );
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "invoices_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast("Exported invoices to CSV!");
   };
 
   const yearlySavings = Math.round((1 - (currentPlanData.yearlyPrice / (currentPlanData.monthlyPrice * 12))) * 100);
@@ -274,8 +242,8 @@ export function BillingClient() {
                       )}
                     </div>
                     {cycle === "yearly" && plan.monthlyPrice > 0 && (
-                      <p className="text-[11px] text-white/35 mt-1">
-                        ₹{Math.round(plan.yearlyPrice / 12).toLocaleString("en-IN")}/mo billed annually
+                      <p className="text-[11px] text-emerald-400 font-medium mt-1">
+                        Save ₹{(plan.monthlyPrice * 12) - plan.yearlyPrice}/year
                       </p>
                     )}
                   </div>
@@ -326,148 +294,22 @@ export function BillingClient() {
         </div>
       </div>
 
-      {/* Two-column: Payment Methods + Billing Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Payment Methods */}
-        <div className="bg-[#131a2e] border border-white/[0.06] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <CreditCard className="w-5 h-5 text-[#6C63FF]" />
-              <h3 className="text-[16px] font-bold text-white">Payment Methods</h3>
-            </div>
-            <button
-              onClick={() => setShowAddCard(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-[#6C63FF] bg-[#6C63FF]/15 rounded-lg hover:bg-[#6C63FF]/25 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add Card
-            </button>
-          </div>
 
-          {billing.paymentMethods.length === 0 ? (
-            <div className="text-center py-8">
-              <CreditCard className="w-8 h-8 text-white/20 mx-auto mb-2" />
-              <p className="text-[13px] text-white/40">No payment methods added yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {billing.paymentMethods.map((pm) => (
-                <div key={pm.id} className="flex items-center gap-3 p-3.5 bg-[#0f1629] rounded-xl border border-white/[0.06]">
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-                    <CreditCard className="w-5 h-5 text-white/60" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-semibold text-white">
-                      {CARD_BRANDS[pm.type] || pm.type} •••• {pm.last4}
-                    </p>
-                    <p className="text-[11px] text-white/40">Expires {pm.expiry}</p>
-                  </div>
-                  {pm.isDefault && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] flex-shrink-0">
-                      Default
-                    </span>
-                  )}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {!pm.isDefault && (
-                      <button
-                        onClick={() => billing.setDefaultPaymentMethod(pm.id)}
-                        className="p-1.5 rounded-lg text-white/30 hover:text-[#6C63FF] hover:bg-[#6C63FF]/10 transition-colors"
-                        title="Set as default"
-                      >
-                        <Star className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        billing.removePaymentMethod(pm.id);
-                        showToast("Payment method removed");
-                      }}
-                      className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Remove"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-4 flex items-start gap-2 p-3 bg-[#0f1629] rounded-xl border border-white/[0.04]">
-            <Shield className="w-4 h-4 text-[#6C63FF] flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-white/45">
-              Payments are processed securely via Razorpay. Card details are never stored on our servers.
-            </p>
-          </div>
-        </div>
-
-        {/* Billing Information */}
-        <div className="bg-[#131a2e] border border-white/[0.06] rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <Building2 className="w-5 h-5 text-[#6C63FF]" />
-              <h3 className="text-[16px] font-bold text-white">Billing Information</h3>
-            </div>
-            {!editingBilling ? (
-              <button
-                onClick={() => { setBillingForm(billing.billingInfo); setEditingBilling(true); }}
-                className="text-[12px] font-bold text-[#6C63FF] hover:underline"
-              >
-                Edit
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button onClick={() => setEditingBilling(false)} className="text-[12px] font-bold text-white/40 hover:text-white/70">
-                  Cancel
-                </button>
-                <button onClick={handleSaveBilling} className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-white bg-[#6C63FF] rounded-lg hover:bg-[#5a52e6]">
-                  <Check className="w-3.5 h-3.5" /> Save
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {([
-              { key: "name", label: "Full Name", placeholder: "John Doe" },
-              { key: "email", label: "Billing Email", placeholder: "john@example.com" },
-              { key: "address", label: "Address", placeholder: "123 Main Street" },
-              { key: "city", label: "City", placeholder: "Mumbai" },
-              { key: "state", label: "State", placeholder: "Maharashtra" },
-              { key: "zip", label: "Zip Code", placeholder: "400001" },
-              { key: "gstNumber", label: "GST Number", placeholder: "22AAAAA0000A1Z5" },
-            ] as { key: keyof typeof billingForm; label: string; placeholder: string }[]).map(({ key, label, placeholder }) => (
-              <div key={key} className={key === "address" ? "sm:col-span-2" : ""}>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-white/35 mb-1.5 block" style={MONO}>
-                  {label}
-                </label>
-                <input
-                  value={editingBilling ? billingForm[key] : billing.billingInfo[key]}
-                  onChange={(e) => setBillingForm((f) => ({ ...f, [key]: e.target.value }))}
-                  readOnly={!editingBilling}
-                  placeholder={editingBilling ? placeholder : "—"}
-                  className={`w-full px-3 py-2.5 rounded-xl text-[13px] border transition-colors ${
-                    editingBilling
-                      ? "bg-[#0f1629] border-white/[0.08] text-white focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/15 focus:outline-none"
-                      : "bg-white/[0.03] border-white/[0.04] text-white/60"
-                  }`}
-                />
-              </div>
-            ))}
-          </div>
-
-          {billingSaved && (
-            <div className="mt-3 flex items-center gap-1.5 text-[12px] font-bold text-emerald-300">
-              <CheckCircle2 className="w-4 h-4" /> Changes saved successfully
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Invoice History */}
       <div className="bg-[#131a2e] border border-white/[0.06] rounded-2xl p-6 mb-8">
-        <div className="flex items-center gap-2.5 mb-5">
-          <Receipt className="w-5 h-5 text-[#6C63FF]" />
-          <h3 className="text-[16px] font-bold text-white">Invoice History</h3>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2.5">
+            <Receipt className="w-5 h-5 text-[#6C63FF]" />
+            <h3 className="text-[16px] font-bold text-white">Invoice History</h3>
+          </div>
+          <button
+            onClick={handleExportCSV}
+            disabled={billing.invoices.length === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold text-white/80 bg-white/10 rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
+          >
+            <Download className="w-3.5 h-3.5" /> Export CSV
+          </button>
         </div>
 
         {billing.invoices.length === 0 ? (
@@ -607,66 +449,31 @@ export function BillingClient() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3">
+              {showConfirm.action === "upgrade" && showConfirm.planId !== "free" ? (
+                <div className="relative w-full h-[45px] rounded-xl overflow-hidden bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] shadow-lg shadow-[#6C63FF]/25 hover:opacity-90 transition-opacity flex items-center justify-center cursor-pointer group">
+                  <span className="text-[13px] font-bold text-white relative z-10 pointer-events-none group-hover:scale-[1.02] transition-transform">
+                    Pay Now
+                  </span>
+                  <div className="absolute inset-0 z-20 opacity-0 overflow-hidden flex items-center justify-center">
+                    <div className="w-[500px] h-[200px] flex items-center justify-center transform scale-[4]">
+                      <RazorpayButton />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={handleDowngrade}
+                  className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white transition-colors bg-amber-500/80 hover:bg-amber-500"
+                >
+                  Confirm Downgrade
+                </button>
+              )}
               <button
                 onClick={() => setShowConfirm(null)}
-                className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white/60 bg-white/[0.06] hover:bg-white/[0.1] transition-colors"
+                className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white/60 bg-white/[0.06] hover:bg-white/[0.1] transition-colors"
               >
                 Cancel
-              </button>
-              <button
-                onClick={confirmPlanChange}
-                className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white transition-colors ${
-                  showConfirm.action === "upgrade"
-                    ? "bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] shadow-lg shadow-[#6C63FF]/25 hover:opacity-90"
-                    : "bg-amber-500/80 hover:bg-amber-500"
-                }`}
-              >
-                {showConfirm.action === "upgrade" ? "Confirm & Pay" : "Confirm Downgrade"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Card Modal */}
-      {showAddCard && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#131a2e] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <CreditCard className="w-5 h-5 text-[#6C63FF]" />
-                <h3 className="text-[16px] font-bold text-white">Add Payment Method</h3>
-              </div>
-              <button onClick={() => setShowAddCard(false)} className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-[13px] text-white/45 mb-5">
-              In production, this will open a secure Razorpay checkout form. For now, clicking &quot;Add Card&quot; will simulate adding a new card.
-            </p>
-            <div className="p-4 bg-[#0f1629] rounded-xl border border-white/[0.04] mb-5 space-y-3">
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-white/35 mb-1.5 block" style={MONO}>Card Number</label>
-                <input placeholder="4242 4242 4242 4242" className="w-full px-3 py-2.5 rounded-xl text-[13px] bg-[#131a2e] border border-white/[0.08] text-white placeholder:text-white/25 focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/15 focus:outline-none" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-white/35 mb-1.5 block" style={MONO}>Expiry</label>
-                  <input placeholder="MM/YY" className="w-full px-3 py-2.5 rounded-xl text-[13px] bg-[#131a2e] border border-white/[0.08] text-white placeholder:text-white/25 focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/15 focus:outline-none" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-white/35 mb-1.5 block" style={MONO}>CVV</label>
-                  <input placeholder="123" className="w-full px-3 py-2.5 rounded-xl text-[13px] bg-[#131a2e] border border-white/[0.08] text-white placeholder:text-white/25 focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/15 focus:outline-none" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setShowAddCard(false)} className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white/60 bg-white/[0.06] hover:bg-white/[0.1] transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleAddCard} className="flex-1 py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] shadow-lg shadow-[#6C63FF]/25 hover:opacity-90 transition-opacity">
-                Add Card
               </button>
             </div>
           </div>
@@ -687,3 +494,23 @@ export function BillingClient() {
     </div>
   );
 }
+
+function RazorpayButton() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+    const form = document.createElement("form");
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/payment-button.js";
+    script.setAttribute("data-payment_button_id", "pl_T4EvaSFA4AvYtM");
+    script.async = true;
+    form.appendChild(script);
+    containerRef.current.appendChild(form);
+  }, []);
+
+  return <div ref={containerRef} className="w-full flex justify-center min-h-[45px] items-center"></div>;
+}
+
+

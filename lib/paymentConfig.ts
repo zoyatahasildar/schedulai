@@ -75,8 +75,8 @@ export const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     tagline: "For teams that need more power",
-    monthlyPrice: 799,
-    yearlyPrice: 7999,
+    monthlyPrice: 99,
+    yearlyPrice: 999,
     color: "#6C63FF",
     recommended: true,
     features: [
@@ -94,8 +94,8 @@ export const PLANS: Plan[] = [
     id: "promax",
     name: "Pro Max",
     tagline: "For organizations at scale",
-    monthlyPrice: 1999,
-    yearlyPrice: 19999,
+    monthlyPrice: 249,
+    yearlyPrice: 2499,
     color: "#00D4FF",
     features: [
       { text: "Unlimited users", included: true },
