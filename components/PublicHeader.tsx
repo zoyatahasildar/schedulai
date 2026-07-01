@@ -66,6 +66,9 @@ export function PublicHeader() {
           <Link href="/#social" className="hover:text-[#6c63ff] dark:hover:text-[#00d4ff] transition">
             Customers
           </Link>
+          <Link href="/about" className="hover:text-[#6c63ff] dark:hover:text-[#00d4ff] transition">
+            About
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">
