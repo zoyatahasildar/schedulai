@@ -9,27 +9,14 @@
 //   - Excludes times that overlap existing PENDING/CONFIRMED bookings
 //   - All times computed and returned in UTC (per team rule #1)
 //
-// Note: lib/slots.ts#generateSlots (Member 3) is still a stub, so the
-// Booking Engine computes slots here to stay unblocked without modifying
-// another module's file. We only *reuse* their checkTimeConflict helper shape.
+// Note: Consolidated to use the shared lib/slots.ts#generateSlots.
 // ═══════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { TimeSlot } from "@/types";
+import { generateSlots } from "@/lib/slots";
 
-// Slot granularity in minutes (start times are offered every STEP minutes)
-const SLOT_STEP_MINUTES = 30;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function toMinutes(hhmm: string): number | null {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());
-  if (!match) return null;
-  const h = Number(match[1]);
-  const m = Number(match[2]);
-  if (h < 0 || h > 23 || m < 0 || m > 59) return null;
-  return h * 60 + m;
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -62,61 +49,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Day boundaries in UTC
-    const dayStart = new Date(`${date}T00:00:00.000Z`);
-    const dayEnd = new Date(`${date}T23:59:59.999Z`);
-    const dayOfWeek = dayStart.getUTCDay();
-
-    // Host availability windows for this weekday
-    const windows = await prisma.availability.findMany({
-      where: { userId: eventType.userId, dayOfWeek, isActive: true },
-    });
-
-    // Existing bookings that could block slots on this day
-    const existing = await prisma.booking.findMany({
-      where: {
-        eventType: { userId: eventType.userId },
-        status: { in: ["PENDING", "CONFIRMED"] },
-        startTime: { lte: dayEnd },
-        endTime: { gte: dayStart },
-      },
-      select: { startTime: true, endTime: true },
-    });
-
-    const now = new Date();
-    const slots: TimeSlot[] = [];
-
-    for (const window of windows) {
-      const startMin = toMinutes(window.startTime);
-      const endMin = toMinutes(window.endTime);
-      if (startMin === null || endMin === null || endMin <= startMin) continue;
-
-      for (
-        let offset = startMin;
-        offset + eventType.duration <= endMin;
-        offset += SLOT_STEP_MINUTES
-      ) {
-        const slotStart = new Date(dayStart.getTime() + offset * 60 * 1000);
-        const slotEnd = new Date(slotStart.getTime() + eventType.duration * 60 * 1000);
-
-        // Don't offer slots in the past
-        if (slotStart <= now) continue;
-
-        // Overlap check against existing bookings
-        const overlaps = existing.some(
-          (b) => slotStart < b.endTime && slotEnd > b.startTime
-        );
-
-        slots.push({
-          startTime: slotStart,
-          endTime: slotEnd,
-          available: !overlaps,
-        });
-      }
-    }
-
-    // Sort by start time (windows may be out of order)
-    slots.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    const slots = await generateSlots(eventType.userId, date, eventType.duration);
 
     return NextResponse.json({
       success: true,

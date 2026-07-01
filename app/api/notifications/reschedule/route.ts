@@ -1,20 +1,6 @@
 // app/api/notifications/reschedule/route.ts
-// Reschedule email notification API
-// ═══════════════════════════════════════════════
-// 🔒 OWNED BY: Member 4 (Notifications + Email module)
-// Branch: feature/notifications-v2
-// ═══════════════════════════════════════════════
-// POST /api/notifications/reschedule
-//   Body: {
-//     bookingId: string,
-//     previousStartTime: string (ISO),  // the OLD slot, for the "what changed" view
-//     previousEndTime:   string (ISO)
-//   }
-//   - The booking record is expected to already hold the NEW startTime/endTime.
-//   - Sends a reschedule notice to guest + host showing old → new time.
-//   - Email-only: does not change booking data. Call AFTER the booking
-//     is updated to the new time.
-// ═══════════════════════════════════════════════
+// Handles booking rescheduling, database updates, and emails
+// Owned by: Lead (re-implemented for ChronoAI notifications feature)
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -22,58 +8,42 @@ import { sendRescheduleEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
-    const { bookingId, previousStartTime, previousEndTime } = await req.json();
-
-    if (!bookingId || !previousStartTime || !previousEndTime) {
+    const { bookingId, previousStartTime, previousEndTime, newStartTime, newEndTime } = await req.json();
+    if (!bookingId || !newStartTime || !newEndTime) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "bookingId, previousStartTime and previousEndTime are required",
-        },
+        { success: false, error: "Missing required reschedule parameters" },
         { status: 400 }
       );
     }
 
-    const prevStart = new Date(previousStartTime);
-    const prevEnd = new Date(previousEndTime);
-    if (Number.isNaN(prevStart.getTime()) || Number.isNaN(prevEnd.getTime())) {
-      return NextResponse.json(
-        { success: false, error: "Invalid previous time(s)" },
-        { status: 400 }
-      );
-    }
-
-    const booking = await prisma.booking.findUnique({
+    // Update the booking details in the database
+    const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
+      data: {
+        startTime: new Date(newStartTime),
+        endTime: new Date(newEndTime),
+      },
       include: { eventType: { include: { user: true } } },
     });
 
-    if (!booking) {
-      return NextResponse.json(
-        { success: false, error: "Booking not found" },
-        { status: 404 }
-      );
-    }
+    const emailData = {
+      guestName: updatedBooking.guestName,
+      guestEmail: updatedBooking.guestEmail,
+      hostName: updatedBooking.eventType.user.name ?? "Host",
+      hostEmail: updatedBooking.eventType.user.email,
+      eventTitle: updatedBooking.eventType.title,
+      startTime: updatedBooking.startTime,
+      endTime: updatedBooking.endTime,
+      notes: updatedBooking.notes,
+      previousStartTime: new Date(previousStartTime),
+      previousEndTime: new Date(previousEndTime),
+    };
 
-    const result = await sendRescheduleEmail({
-      guestName: booking.guestName,
-      guestEmail: booking.guestEmail,
-      hostName: booking.eventType.user.name ?? "Your Host",
-      hostEmail: booking.eventType.user.email,
-      eventTitle: booking.eventType.title,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      notes: booking.notes,
-      previousStartTime: prevStart,
-      previousEndTime: prevEnd,
-    });
+    await sendRescheduleEmail(emailData);
 
-    return NextResponse.json({ success: true, data: result });
+    return NextResponse.json({ success: true, data: updatedBooking });
   } catch (error) {
-    console.error("Reschedule notification error:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to send reschedule emails" },
-      { status: 500 }
-    );
+    console.error("Reschedule notification handler error:", error);
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }

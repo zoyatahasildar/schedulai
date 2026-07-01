@@ -8,6 +8,8 @@ import {
   Search, Filter, Clock, Video, CheckCircle, XCircle, AlertCircle,
   Calendar, ChevronDown, MoreHorizontal, Download, Loader2,
 } from "lucide-react";
+import { CancelModal } from "@/components/booking/CancelModal";
+import { RescheduleModal } from "@/components/booking/RescheduleModal";
 
 const MONO = { fontFamily: "var(--font-mono), monospace" } as const;
 type Status = "confirmed" | "pending" | "cancelled" | "completed";
@@ -55,6 +57,66 @@ export function BookingsClient({ initialBookings }: { initialBookings: Booking[]
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+
+  const [cancelModalBooking, setCancelModalBooking] = useState<Booking | null>(null);
+  const [rescheduleModalBooking, setRescheduleModalBooking] = useState<Booking | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCancelNotification = async () => {
+    if (!cancelModalBooking) return;
+    
+    // Update status locally in DB
+    await fetch("/api/booking", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookingId: cancelModalBooking.id, status: "CANCELLED" }),
+    });
+    
+    // Notify guests
+    const res = await fetch("/api/notifications/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookingId: cancelModalBooking.id }),
+    });
+    
+    if (res.ok) {
+      setBookings((prev) => prev.map((b) => (b.id === cancelModalBooking.id ? { ...b, status: "cancelled" } : b)));
+      showToast("Booking cancelled & guest notified!");
+    } else {
+      showToast("Failed to notify guest", "error");
+    }
+  };
+
+  const handleRescheduleNotification = async (newStartTime: string) => {
+    if (!rescheduleModalBooking) return;
+    
+    const newEnd = new Date(new Date(newStartTime).getTime() + rescheduleModalBooking.duration * 60000).toISOString();
+    const oldEnd = new Date(new Date(rescheduleModalBooking.startTime).getTime() + rescheduleModalBooking.duration * 60000).toISOString();
+
+    const res = await fetch("/api/notifications/reschedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId: rescheduleModalBooking.id,
+        previousStartTime: rescheduleModalBooking.startTime,
+        previousEndTime: oldEnd,
+        newStartTime: newStartTime,
+        newEndTime: newEnd,
+      }),
+    });
+
+    if (res.ok) {
+      setBookings((prev) => prev.map((b) => (b.id === rescheduleModalBooking.id ? { ...b, startTime: newStartTime } : b)));
+      showToast("Booking rescheduled & guest notified!");
+    } else {
+      showToast("Failed to reschedule booking", "error");
+    }
+  };
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: bookings.length };
@@ -214,9 +276,25 @@ export function BookingsClient({ initialBookings }: { initialBookings: Booking[]
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="relative">
+                      <div className="flex items-center justify-end gap-2 relative">
+                        {new Date(b.startTime) > new Date() && b.status !== "cancelled" && (
+                          <>
+                            <button
+                              onClick={() => setRescheduleModalBooking(b)}
+                              className="px-2.5 py-1 text-[11px] font-semibold text-[#6C63FF] bg-[#F0EFFF] hover:bg-[#E8E7FF] rounded-md transition-colors whitespace-nowrap"
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              onClick={() => setCancelModalBooking(b)}
+                              className="px-2.5 py-1 text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors whitespace-nowrap"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
                         <button onClick={() => setOpenMenu(openMenu === b.id ? null : b.id)} disabled={busy === b.id}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all">
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all flex-shrink-0">
                           {busy === b.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
                         </button>
                         {openMenu === b.id && (
@@ -252,6 +330,31 @@ export function BookingsClient({ initialBookings }: { initialBookings: Booking[]
           </div>
         )}
       </div>
+
+      {cancelModalBooking && (
+        <CancelModal
+          isOpen={true}
+          onClose={() => setCancelModalBooking(null)}
+          onConfirm={handleCancelNotification}
+          bookingName={cancelModalBooking.name}
+        />
+      )}
+      
+      {rescheduleModalBooking && (
+        <RescheduleModal
+          isOpen={true}
+          onClose={() => setRescheduleModalBooking(null)}
+          onConfirm={handleRescheduleNotification}
+          bookingName={rescheduleModalBooking.name}
+          currentStartTime={rescheduleModalBooking.startTime}
+        />
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold text-white z-50 transition-all ${toast.type === "success" ? "bg-emerald-500" : "bg-red-500"}`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

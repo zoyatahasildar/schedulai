@@ -7,6 +7,7 @@ import {
   Sparkles, Download, Share2, TrendingUp, Users, IndianRupee, Percent, ArrowUpRight, Check,
 } from "lucide-react";
 import { useState } from "react";
+import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -29,13 +30,13 @@ const heatColor = (v: number) => {
 const ChartTip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-xl">
-      <p className="text-[11px] font-bold text-gray-400 mb-1.5" style={MONO}>{label}</p>
+    <div className="bg-[#131a2e] border border-white/[0.06] rounded-xl p-3 shadow-xl">
+      <p className="text-[11px] font-bold text-white/40 mb-1.5" style={MONO}>{label}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.fill }} />
-          <span className="text-[12px] text-gray-500 capitalize">{p.dataKey}:</span>
-          <span className="text-[12px] font-bold text-gray-800" style={MONO}>{p.value}</span>
+          <span className="text-[12px] text-white/50 capitalize">{p.dataKey}:</span>
+          <span className="text-[12px] font-bold text-white" style={MONO}>{p.value}</span>
         </div>
       ))}
     </div>
@@ -87,15 +88,16 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-8">
+    <div className="min-h-screen bg-[#0b1020] text-white px-6 py-8 md:px-8">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-gray-900">Analytics</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Data-driven insights into your scheduling performance.</p>
+          <h1 className="text-[28px] font-bold text-white">Analytics</h1>
+          <p className="text-[14px] text-white/50 mt-1">Data-driven insights into your scheduling performance.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={shareSummary} className="flex items-center gap-2 px-4 py-2.5 bg-[#E0F9FF] text-[#0099BB] text-[13px] font-bold rounded-xl hover:bg-[#C8F3FC] transition-colors shadow-sm">
+          <NotificationBell />
+          <button onClick={shareSummary} className="flex items-center gap-2 px-4 py-2.5 bg-[#00D4FF]/15 text-[#0099BB] text-[13px] font-bold rounded-xl hover:bg-[#00D4FF]/25 transition-colors shadow-sm">
             {shared ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}{shared ? "Copied!" : "Share Report"}
           </button>
           <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white text-[13px] font-bold rounded-xl shadow-lg shadow-[#6C63FF]/20">
@@ -107,19 +109,19 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {KPIS.map((k, i) => (
-          <div key={i} className="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all">
+          <div key={i} className="bg-[#131a2e] rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all">
             <div className="flex items-start justify-between mb-3">
               <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${k.color}18` }}>
                 <k.icon className="w-5 h-5" style={{ color: k.color }} strokeWidth={1.75} />
               </div>
               {brief.growth !== 0 && i === 0 && (
-                <span className="flex items-center gap-1 text-[12px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[12px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full">
                   <ArrowUpRight className="w-3 h-3" />{brief.growth > 0 ? `+${brief.growth}%` : `${brief.growth}%`}
                 </span>
               )}
             </div>
-            <p className="text-[26px] font-bold text-gray-900 leading-none mb-1" style={MONO}>{k.value}</p>
-            <p className="text-[12px] text-gray-500 font-medium mb-3">{k.title}</p>
+            <p className="text-[26px] font-bold text-white leading-none mb-1" style={MONO}>{k.value}</p>
+            <p className="text-[12px] text-white/50 font-medium mb-3">{k.title}</p>
             <ResponsiveContainer width="100%" height={28}>
               <LineChart data={spark}>
                 <Line type="monotone" dataKey="val" stroke={k.color} strokeWidth={2} dot={false} isAnimationActive={false} />
@@ -131,9 +133,9 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
-          <h3 className="text-[15px] font-bold text-gray-900">Bookings Over Time</h3>
-          <p className="text-[13px] text-gray-500 mt-0.5 mb-5">Last 6 months</p>
+        <div className="lg:col-span-2 bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+          <h3 className="text-[15px] font-bold text-white">Bookings Over Time</h3>
+          <p className="text-[13px] text-white/50 mt-0.5 mb-5">Last 6 months</p>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={trend} margin={{ left: -16, right: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -145,11 +147,11 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
-          <h3 className="text-[15px] font-bold text-gray-900 mb-1">Event Types</h3>
-          <p className="text-[13px] text-gray-500 mb-4">Booking share by type</p>
+        <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+          <h3 className="text-[15px] font-bold text-white mb-1">Event Types</h3>
+          <p className="text-[13px] text-white/50 mb-4">Booking share by type</p>
           {byType.length === 0 ? (
-            <p className="text-[13px] text-gray-400 text-center py-10">No bookings yet.</p>
+            <p className="text-[13px] text-white/40 text-center py-10">No bookings yet.</p>
           ) : (
             <>
               <ResponsiveContainer width="100%" height={160}>
@@ -166,10 +168,10 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
                   return (
                     <div key={e.name}>
                       <div className="flex justify-between mb-1">
-                        <span className="flex items-center gap-2 text-[12px] text-gray-600"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.color }} />{e.name}</span>
-                        <span className="text-[12px] font-bold text-gray-800" style={MONO}>{pct}%</span>
+                        <span className="flex items-center gap-2 text-[12px] text-white/65"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: e.color }} />{e.name}</span>
+                        <span className="text-[12px] font-bold text-white" style={MONO}>{pct}%</span>
                       </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: e.color }} /></div>
+                      <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: e.color }} /></div>
                     </div>
                   );
                 })}
@@ -181,9 +183,9 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
 
       {/* Bar + Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
-          <h3 className="text-[15px] font-bold text-gray-900 mb-1">Bookings by Day</h3>
-          <p className="text-[13px] text-gray-500 mb-4">Which weekday drives the most bookings</p>
+        <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+          <h3 className="text-[15px] font-bold text-white mb-1">Bookings by Day</h3>
+          <p className="text-[13px] text-white/50 mb-4">Which weekday drives the most bookings</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={byDay} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
@@ -195,13 +197,13 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
-          <h3 className="text-[15px] font-bold text-gray-900 mb-1">Activity Heatmap</h3>
-          <p className="text-[13px] text-gray-500 mb-5">Bookings made, last 5 weeks</p>
+        <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6">
+          <h3 className="text-[15px] font-bold text-white mb-1">Activity Heatmap</h3>
+          <p className="text-[13px] text-white/50 mb-5">Bookings made, last 5 weeks</p>
           <div className="space-y-1.5">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, di) => (
               <div key={day} className="flex items-center gap-2">
-                <span className="text-[10px] text-gray-400 w-7 font-bold text-right" style={MONO}>{day}</span>
+                <span className="text-[10px] text-white/40 w-7 font-bold text-right" style={MONO}>{day}</span>
                 <div className="flex gap-1.5 flex-1">
                   {heat.map((week, wi) => (
                     <div key={wi} className="flex-1 h-7 rounded-md transition-all hover:scale-110 cursor-pointer" style={{ backgroundColor: heatColor(week[di]) }} title={`${week[di]} bookings`} />
@@ -211,9 +213,9 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
             ))}
           </div>
           <div className="flex items-center gap-2 mt-4">
-            <span className="text-[11px] text-gray-400">Less</span>
+            <span className="text-[11px] text-white/40">Less</span>
             {[0, 1, 3, 5, 7].map((v) => <div key={v} className="w-5 h-5 rounded-md" style={{ backgroundColor: heatColor(v) }} />)}
-            <span className="text-[11px] text-gray-400">More</span>
+            <span className="text-[11px] text-white/40">More</span>
           </div>
         </div>
       </div>

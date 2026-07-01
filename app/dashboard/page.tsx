@@ -1,5 +1,5 @@
 // app/dashboard/page.tsx
-// Dashboard home — real data, ScheduleAI design
+// Dashboard home — real data, ChronoAI design
 // Owned by: Lead
 
 import { getServerSession } from "next-auth";

@@ -74,7 +74,7 @@ function timeRange(start: Date, end: Date): string {
 // ─── Gemini personalisation ─────────────────────────────
 // Generates ONE warm opening paragraph for the guest. Host emails stay
 // purely informational, so they use static copy (no AI cost/latency).
-type GuestEmailKind = "confirmation" | "cancellation" | "reschedule";
+type GuestEmailKind = "confirmation" | "cancellation" | "reschedule" | "reminder";
 
 async function generateGuestIntro(
   data: BookingEmailData,
@@ -84,6 +84,7 @@ async function generateGuestIntro(
     confirmation: `Hi ${data.guestName}, your ${data.eventTitle} with ${data.hostName} is all set — we're looking forward to it!`,
     cancellation: `Hi ${data.guestName}, your ${data.eventTitle} with ${data.hostName} has been cancelled. Sorry for any inconvenience — you're welcome to book another time whenever it suits you.`,
     reschedule: `Hi ${data.guestName}, your ${data.eventTitle} with ${data.hostName} has been moved to a new time. The updated details are below.`,
+    reminder: `Hi ${data.guestName}, just a quick reminder about your upcoming ${data.eventTitle} with ${data.hostName}.`,
   };
 
   // No key → skip the call entirely, use friendly fallback.
@@ -93,6 +94,7 @@ async function generateGuestIntro(
     confirmation: "warmly confirm their upcoming meeting and express genuine enthusiasm",
     cancellation: "gently and empathetically tell them their meeting was cancelled, and reassure them they can rebook anytime",
     reschedule: "warmly let them know their meeting has been moved to a new time",
+    reminder: "send a friendly, brief reminder that their meeting is coming up in about 24 hours",
   };
 
   try {
@@ -202,7 +204,7 @@ export async function sendHostNotification(data: BookingEmailData) {
 }
 
 // ─── 3. Cancellation → guest + host ─────────────────────
-export async function sendCancellationEmail(data: BookingEmailData) {
+export async function sendCancellationEmail(data: BookingEmailData, sendHost: boolean = true) {
   try {
     const guestIntro = await generateGuestIntro(data, "cancellation");
 
@@ -218,20 +220,27 @@ export async function sendCancellationEmail(data: BookingEmailData) {
       ${detailsPanel(data, { label: "Guest notes" })}
     `;
 
-    const [guest, host] = await Promise.all([
+    const promises: Promise<any>[] = [
       dispatch({
         to: data.guestEmail,
         subject: `❌ Cancelled: ${data.eventTitle} with ${data.hostName}`,
         html: shell("Your meeting was cancelled", "#dc2626", guestBody),
         label: "cancellation-guest",
       }),
-      dispatch({
-        to: data.hostEmail,
-        subject: `❌ Booking Cancelled: ${data.guestName} — ${data.eventTitle}`,
-        html: shell("A booking was cancelled", "#dc2626", hostBody),
-        label: "cancellation-host",
-      }),
-    ]);
+    ];
+
+    if (sendHost) {
+      promises.push(
+        dispatch({
+          to: data.hostEmail,
+          subject: `❌ Booking Cancelled: ${data.guestName} — ${data.eventTitle}`,
+          html: shell("A booking was cancelled", "#dc2626", hostBody),
+          label: "cancellation-host",
+        })
+      );
+    }
+
+    const [guest, host] = await Promise.all(promises);
 
     return { success: guest.success && host.success, data: { guest, host } };
   } catch (error) {
@@ -241,7 +250,7 @@ export async function sendCancellationEmail(data: BookingEmailData) {
 }
 
 // ─── 4. Reschedule → guest + host ───────────────────────
-export async function sendRescheduleEmail(data: RescheduleEmailData) {
+export async function sendRescheduleEmail(data: RescheduleEmailData, sendHost: boolean = true) {
   try {
     const guestIntro = await generateGuestIntro(data, "reschedule");
 
@@ -270,24 +279,47 @@ export async function sendRescheduleEmail(data: RescheduleEmailData) {
       ${newSlot}
     `;
 
-    const [guest, host] = await Promise.all([
+    const promises: Promise<any>[] = [
       dispatch({
         to: data.guestEmail,
         subject: `🔄 Rescheduled: ${data.eventTitle} with ${data.hostName}`,
         html: shell("Your meeting was rescheduled 🔄", ACCENT, guestBody),
         label: "reschedule-guest",
       }),
-      dispatch({
-        to: data.hostEmail,
-        subject: `🔄 Booking Rescheduled: ${data.guestName} — ${data.eventTitle}`,
-        html: shell("A booking was rescheduled 🔄", ACCENT, hostBody),
-        label: "reschedule-host",
-      }),
-    ]);
+    ];
+
+    if (sendHost) {
+      promises.push(
+        dispatch({
+          to: data.hostEmail,
+          subject: `🔄 Booking Rescheduled: ${data.guestName} — ${data.eventTitle}`,
+          html: shell("A booking was rescheduled 🔄", ACCENT, hostBody),
+          label: "reschedule-host",
+        })
+      );
+    }
+
+    const [guest, host] = await Promise.all(promises);
 
     return { success: guest.success && host.success, data: { guest, host } };
   } catch (error) {
     console.error("Reschedule email error:", error);
     return { success: false, error };
   }
+}
+
+// ─── 5. Reminder → guest ────────────────────────────────
+export async function sendReminderEmail(data: BookingEmailData) {
+  const intro = await generateGuestIntro(data, "reminder");
+  const body = `
+      <p>${intro}</p>
+      ${detailsPanel(data)}
+      <p>See you soon! 👋</p>
+    `;
+  return dispatch({
+    to: data.guestEmail,
+    subject: `⏰ Reminder: ${data.eventTitle} with ${data.hostName}`,
+    html: shell("Upcoming meeting reminder ⏰", ACCENT, body),
+    label: "reminder-guest",
+  });
 }
