@@ -213,7 +213,7 @@ function NotificationsSection() {
     <div className="space-y-6">
       <div>
         <h2 className="text-[20px] font-bold text-white">Notifications</h2>
-        <p className="text-[14px] text-white/50 mt-1">What ChronoAI sends on your behalf.</p>
+        <p className="text-[14px] text-white/50 mt-1">What EdOra sends on your behalf.</p>
       </div>
       <div className="bg-[#131a2e] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.07)] p-6 space-y-4">
         {[
@@ -431,7 +431,7 @@ function IntegrationsSection() {
       <div>
         <h2 className="text-[20px] font-bold text-white">Integrations</h2>
         <p className="text-[14px] text-white/50 mt-1">
-          Connect your calendars and video apps to ChronoAI.
+          Connect your calendars and video apps to EdOra.
         </p>
       </div>
 
@@ -500,7 +500,7 @@ function TimezoneSection() {
       <div>
         <h2 className="text-[20px] font-bold text-white">Timezone</h2>
         <p className="text-[14px] text-white/50 mt-1">
-          Choose the timezone used to display dates and times across ChronoAI.
+          Choose the timezone used to display dates and times across EdOra.
         </p>
       </div>
 
@@ -837,7 +837,7 @@ function AppearanceSection() {
       ) : (
         <div className="space-y-6 max-w-3xl">
           {/* Dashboard Theme */}
-          <AppearanceSectionBlock title="Dashboard Theme" desc="Controls the colour scheme of your ChronoAI dashboard." icon={Monitor}>
+          <AppearanceSectionBlock title="Dashboard Theme" desc="Controls the colour scheme of your EdOra dashboard." icon={Monitor}>
             <RadioGroup
               value={dashTheme}
               onValueChange={(v) => setDashTheme(v as Theme)}

@@ -42,7 +42,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
             <Zap className="w-4 h-4 text-white fill-white" />
           </span>
           <span className="text-[15px] font-bold text-gray-900 tracking-tight">
-            Chrono<span className="text-[#6C63FF]">AI</span>
+            Ed<span className="text-[#6C63FF]">Ora</span>
           </span>
         </Link>
 

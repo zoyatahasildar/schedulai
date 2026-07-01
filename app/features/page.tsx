@@ -70,7 +70,7 @@ export default function FeaturesPage() {
               Supercharge your scheduling workflow today.
             </h2>
             <p className="text-white/60 mt-4 text-[16px] max-w-xl mx-auto">
-              Get started with ChronoAI for free. No credit card required, setup in 2 minutes.
+              Get started with EdOra for free. No credit card required, setup in 2 minutes.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Link

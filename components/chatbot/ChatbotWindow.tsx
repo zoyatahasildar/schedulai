@@ -29,7 +29,7 @@ export function ChatbotWindow({ onClose, username }: ChatbotWindowProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hi! I'm your ChronoAI assistant 👋 I can help you book meetings, check availability, and more. What can I help you with?`,
+      content: `Hi! I'm your EdOra assistant 👋 I can help you book meetings, check availability, and more. What can I help you with?`,
       timestamp: new Date(),
     },
   ]);
@@ -92,8 +92,8 @@ export function ChatbotWindow({ onClose, username }: ChatbotWindowProps) {
           <Zap className="w-4 h-4 text-white" />
         </div>
         <div>
-          <p className="text-white font-semibold text-sm">ChronoAI Assistant</p>
-          <p className="text-violet-200 text-xs">Powered by Gemini AI</p>
+          <p className="text-white font-semibold text-sm">EdOra Assistant</p>
+          <p className="text-violet-200 text-xs">Scheduling made simple</p>
         </div>
         <div className="ml-auto w-2 h-2 bg-green-400 rounded-full" title="Online" />
       </div>

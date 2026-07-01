@@ -204,12 +204,12 @@ export function DashboardClient({ userName, stats, upcoming, schedule, bookingUr
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-white" />
+                    <Calendar className="w-3 h-3 text-white" />
                   </span>
-                  <span className="text-white/80 text-[12px]">AI-powered scheduling</span>
+                  <span className="text-white/80 text-[12px]">Modern scheduling</span>
                 </div>
                 <h2 className="text-[22px] font-bold text-white leading-tight mb-1">
-                  Welcome to ChronoAI
+                  Welcome to EdOra
                 </h2>
                 <p className="text-white/70 text-[13px]">
                   {stats.total === 0

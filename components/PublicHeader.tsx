@@ -52,7 +52,7 @@ export function PublicHeader() {
             </svg>
           </span>
           <span className="text-[17px] font-extrabold tracking-tight text-[#1a1a2e] dark:text-white transition-colors duration-300">
-            Chrono<span className="text-[#6c63ff]">AI</span>
+            Ed<span className="text-[#6c63ff]">Ora</span>
           </span>
         </Link>
 

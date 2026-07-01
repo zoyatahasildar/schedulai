@@ -53,7 +53,7 @@ Their booking link: ${process.env.NEXT_PUBLIC_APP_URL}/book/${username}
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
     const systemPrompt = `
-You are ChronoAI, a friendly and helpful AI scheduling assistant for a booking platform similar to Cal.com.
+You are EdOra, a friendly and helpful scheduling assistant for a booking platform similar to Cal.com.
 
 ${hostContext}
 

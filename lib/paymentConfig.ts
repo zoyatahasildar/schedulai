@@ -9,7 +9,7 @@ export const RAZORPAY_CONFIG = {
   KEY_ID: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_XXXXXXXXXXXXXX",
   KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || "",         // server-side only
   CURRENCY: "INR",
-  COMPANY_NAME: "ScheduleAI",
+  COMPANY_NAME: "EdOra",
   COMPANY_LOGO: "/logo.png",                                 // shown in Razorpay modal
   THEME_COLOR: "#6C63FF",
 } as const;

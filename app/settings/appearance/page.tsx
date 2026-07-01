@@ -179,7 +179,7 @@ export default function AppearancePage() {
           </div>
           <div>
             <h1 className="text-[24px] font-bold text-white">Appearance</h1>
-            <p className="text-[13px] text-white/45 mt-0.5">Customise how ChronoAI looks for you and your guests.</p>
+            <p className="text-[13px] text-white/45 mt-0.5">Customise how EdOra looks for you and your guests.</p>
           </div>
         </div>
 
@@ -194,7 +194,7 @@ export default function AppearancePage() {
           <div className="space-y-6">
 
             {/* 1 — Dashboard Theme */}
-            <Section title="Dashboard Theme" desc="Controls the colour scheme of your ChronoAI dashboard." icon={Monitor}>
+            <Section title="Dashboard Theme" desc="Controls the colour scheme of your EdOra dashboard." icon={Monitor}>
               <RadioGroup
                 value={dashboardTheme}
                 onValueChange={(v) => set("dashboardTheme", v as Theme)}
