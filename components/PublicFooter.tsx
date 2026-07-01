@@ -17,11 +17,11 @@ export function PublicFooter() {
             </svg>
           </span>
           <span className="font-extrabold text-[#1a1a2e] dark:text-white transition-colors duration-300">
-            Chrono<span className="text-[#6c63ff]">AI</span>
+            Ed<span className="text-[#6c63ff]">Ora</span>
           </span>
         </Link>
         <p className="text-[13px] text-[#1a1a2e]/45 dark:text-white/45 transition-colors duration-300">
-          © 2026 ChronoAI · Smart Scheduling, Powered by AI
+          © 2026 EdOra · Scheduling made simple
         </p>
         <div className="flex gap-5 text-[13px] text-[#1a1a2e]/50 dark:text-white/50 font-medium transition-colors duration-300">
           <Link href="/about" className="hover:text-[#6c63ff] transition">

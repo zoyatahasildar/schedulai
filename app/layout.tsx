@@ -24,10 +24,10 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ChronoAI — Smart Scheduling, Powered by AI",
+  title: "EdOra — Scheduling Made Simple",
   description:
-    "Schedule meetings effortlessly with AI-powered smart scheduling. Share your booking link, set your availability, and let ChronoAI handle the rest.",
-  keywords: ["scheduling", "calendar", "booking", "AI", "meetings"],
+    "Schedule meetings effortlessly. Share your booking link, set your availability, and let EdOra handle the rest.",
+  keywords: ["scheduling", "calendar", "booking", "meetings"],
 };
 
 export default function RootLayout({

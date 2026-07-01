@@ -32,8 +32,8 @@ export default function AboutPage() {
     },
     {
       icon: <Target className="w-6 h-6 text-cyan-500" />,
-      title: "AI-First Vision",
-      description: "We believe calendars shouldn't just be grids. They should act as active, intelligent assistants that automate scheduling, logistics, and prep."
+      title: "Scheduling-First Vision",
+      description: "We believe calendars shouldn't just be grids. They should act as active assistants that automate scheduling, logistics, and prep."
     },
     {
       icon: <Shield className="w-6 h-6 text-emerald-500" />,
@@ -56,7 +56,7 @@ export default function AboutPage() {
     },
     {
       name: "Shivam Kishore",
-      role: "Lead Fullstack & AI Integration Engineer",
+      role: "Lead Fullstack Engineer",
       initials: "SK",
       color: "from-cyan-400 to-blue-500"
     },
@@ -86,10 +86,10 @@ export default function AboutPage() {
         </span>
         <h1 className="reveal text-[40px] sm:text-[54px] leading-[1.08] font-extrabold tracking-tight text-[#1a1a2e] dark:text-white">
           We're building the future of<br />
-          <span className="bg-gradient-to-r from-[#6c63ff] to-[#00d4ff] bg-clip-text text-transparent">intelligent scheduling.</span>
+          <span className="bg-gradient-to-r from-[#6c63ff] to-[#00d4ff] bg-clip-text text-transparent">modern scheduling.</span>
         </h1>
         <p className="reveal mt-6 text-[17px] leading-relaxed text-[#1a1a2e]/60 dark:text-white/60 max-w-2xl mx-auto">
-          At ChronoAI, we believe that scheduling shouldn't require complex back-and-forth emails. We're creating a beautifully crafted, AI-powered system that organizes your calendar on autopilot.
+          At EdOra, we believe that scheduling shouldn't require complex back-and-forth emails. We're creating a beautifully crafted system that organizes your calendar on autopilot.
         </p>
       </section>
 
@@ -101,10 +101,10 @@ export default function AboutPage() {
               Our Mission
             </h2>
             <p className="text-[16px] leading-relaxed text-[#1a1a2e]/60 dark:text-white/60">
-              ChronoAI was born out of a simple frustration: calendar coordination is a waste of human creativity. Every hour spent emailing back and forth to find "a good time" is an hour taken away from actual work, building, and connecting.
+              EdOra was born out of a simple frustration: calendar coordination is a waste of human creativity. Every hour spent emailing back and forth to find "a good time" is an hour taken away from actual work, building, and connecting.
             </p>
             <p className="text-[16px] leading-relaxed text-[#1a1a2e]/60 dark:text-white/60">
-              We set out to build a platform that fits seamlessly into your workflow. By combining high-speed scheduling interfaces, custom booking paths, and deep AI integrations, we allow you to focus on the conversation, not the scheduling.
+              We set out to build a platform that fits seamlessly into your workflow. By combining high-speed scheduling interfaces, custom booking paths, and deep integrations, we allow you to focus on the conversation, not the scheduling.
             </p>
             <div className="pt-2">
               <Link
@@ -120,7 +120,7 @@ export default function AboutPage() {
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-[#00d4ff]/10 to-transparent blur-2xl"></div>
             <div className="relative space-y-5">
               <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 text-xl font-bold">🎯</div>
-              <h3 className="text-xl font-bold">Why ChronoAI?</h3>
+              <h3 className="text-xl font-bold">Why EdOra?</h3>
               <ul className="space-y-3.5 text-white/70 text-sm">
                 <li className="flex items-start gap-2.5">
                   <span className="text-[#6c63ff] font-bold">✓</span> Integrated email invites sent securely using customizable SMTP servers.

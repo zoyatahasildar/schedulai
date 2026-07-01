@@ -27,11 +27,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const FROM_EMAIL = `ChronoAI <${process.env.SMTP_USER || "noreply@theedmentor.com"}>`;
+const FROM_EMAIL = `EdOra <${process.env.SMTP_USER || "noreply@theedmentor.com"}>`;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
-const BRAND = "ChronoAI";
+const BRAND = "EdOra";
 const ACCENT = "#7c3aed";
 const PANEL_BG = "#f3f0ff";
 

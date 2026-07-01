@@ -93,8 +93,8 @@ export function BillingClient() {
         amount: amt * 100, // convert to paise
         planId,
         cycle,
-        customerEmail: session?.user?.email || "billing@chronoai.com",
-        customerName: session?.user?.name || "ChronoAI User",
+        customerEmail: session?.user?.email || "billing@edora.com",
+        customerName: session?.user?.name || "EdOra User",
       });
 
       if (result.success) {

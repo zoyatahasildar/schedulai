@@ -135,7 +135,7 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              New to ChronoAI?{" "}
+              New to EdOra?{" "}
               <button onClick={() => setMode("signup")} className="font-semibold text-[#6C63FF] dark:text-[#9aa0ff] hover:underline">
                 Create a free account
               </button>

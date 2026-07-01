@@ -67,14 +67,14 @@ export default function LandingPage() {
       {/* HERO (centered) */}
       <section className="max-w-4xl mx-auto px-6 pt-16 lg:pt-20 text-center">
         <span className="reveal inline-flex items-center gap-2 text-[13px] font-semibold text-[#6c63ff] dark:text-[#9aa0ff] bg-[#6c63ff]/10 dark:bg-[#6c63ff]/20 px-3 py-1.5 rounded-full mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#6c63ff] dark:bg-[#9aa0ff]"></span> AI-powered scheduling
+          <span className="w-1.5 h-1.5 rounded-full bg-[#6c63ff] dark:bg-[#9aa0ff]"></span> Modern scheduling
         </span>
         <h1 className="reveal text-[40px] sm:text-[58px] leading-[1.04] font-extrabold tracking-tight text-[#1a1a2e] dark:text-white">
           Smarter scheduling,<br />
-          <span className="bg-gradient-to-r from-[#6c63ff] to-[#00d4ff] bg-clip-text text-transparent">powered by AI.</span>
+          <span className="bg-gradient-to-r from-[#6c63ff] to-[#00d4ff] bg-clip-text text-transparent">made simple.</span>
         </h1>
         <p className="reveal mt-5 text-[17px] leading-relaxed text-[#1a1a2e]/60 dark:text-white/60 max-w-2xl mx-auto">
-          Share one link, set your availability, and let guests book the perfect time — while AI handles the busywork. Look polished, save hours, never double-book.
+          Share one link, set your availability, and let guests book the perfect time. Look polished, save hours, and never double-book.
         </p>
         <div className="reveal mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
@@ -122,7 +122,7 @@ export default function LandingPage() {
             <span className="w-3 h-3 rounded-full bg-red-400/80"></span>
             <span className="w-3 h-3 rounded-full bg-amber-400/80"></span>
             <span className="w-3 h-3 rounded-full bg-emerald-400/80"></span>
-            <span className="ml-3 text-[11px] text-white/40 font-mono">app.chronoai.com/dashboard</span>
+            <span className="ml-3 text-[11px] text-white/44 font-mono">app.edora.com/dashboard</span>
           </div>
           <div className="flex">
             {/* SIDEBAR */}
@@ -133,7 +133,7 @@ export default function LandingPage() {
                     <path d="M13 2 3 14h7l-1 8 10-12h-7z" />
                   </svg>
                 </span>
-                <span className="text-[13px] font-extrabold text-white">Chrono<span className="text-[#6c63ff]">AI</span></span>
+                <span className="text-[13px] font-extrabold text-white">Ed<span className="text-[#6c63ff]">Ora</span></span>
               </div>
               <a className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-white bg-[#6c63ff]/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#6c63ff]"></span> Dashboard
@@ -145,7 +145,7 @@ export default function LandingPage() {
               <a className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-white/55 hover:text-white"><span className="w-1.5 h-1.5 rounded-full bg-white/25"></span> Settings</a>
               <div className="mt-auto rounded-xl bg-gradient-to-br from-[#6c63ff]/25 to-[#00d4ff]/10 p-3 border border-white/10">
                 <p className="text-[11px] font-bold text-white">Upgrade to Pro</p>
-                <p className="text-[10px] text-white/50 mt-0.5 leading-snug">Unlock advanced AI &amp; payments.</p>
+                <p className="text-[10px] text-white/50 mt-0.5 leading-snug">Unlock advanced scheduling &amp; payments.</p>
               </div>
             </aside>
 
@@ -153,7 +153,7 @@ export default function LandingPage() {
             <div className="flex-1 min-w-0 p-3 sm:p-4 bg-[#0b1020]">
               <div className="rounded-xl bg-gradient-to-r from-[#3b5bdb] via-[#4263eb] to-[#00d4ff] p-4 flex items-center justify-between overflow-hidden">
                 <div>
-                  <p className="text-[11px] text-white/80">Welcome to ChronoAI 👋</p>
+                  <p className="text-[11px] text-white/80">Welcome to EdOra 👋</p>
                   <p className="text-[18px] sm:text-[22px] font-extrabold text-white leading-tight">Your week, organized</p>
                   <p className="text-[11px] text-white/70 mt-0.5">Here's what's happening with your bookings.</p>
                 </div>
@@ -365,7 +365,7 @@ export default function LandingPage() {
             One platform. Every scheduling superpower.
           </h2>
           <p className="text-[#1a1a2e]/55 dark:text-white/55 mt-4 text-[16px] transition-colors duration-300">
-            From timezone-smart availability to AI booking — ChronoAI replaces the tangle of tools you're juggling today.
+            From timezone-smart availability to calendar syncing — EdOra replaces the tangle of tools you're juggling today.
           </p>
         </div>
         
@@ -383,7 +383,7 @@ export default function LandingPage() {
               Ready to look polished<br />and book more?
             </h2>
             <p className="text-white/60 mt-4 text-[16px] max-w-xl mx-auto">
-              Scheduling smarter with AI. Free to start — no credit card required.
+              Scheduling made simple. Free to start — no credit card required.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Link

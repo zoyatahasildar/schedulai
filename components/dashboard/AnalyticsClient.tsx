@@ -80,7 +80,7 @@ export function AnalyticsClient({ kpis, trend, byDay, byType, heat, brief }: {
   };
 
   const shareSummary = () => {
-    const text = `ChronoAI report: ${kpis.total} total bookings, ₹${kpis.revenue} revenue, ${kpis.conversion}% conversion. Busiest day: ${brief.busiestDay}.`;
+    const text = `EdOra report: ${kpis.total} total bookings, ₹${kpis.revenue} revenue, ${kpis.conversion}% conversion. Busiest day: ${brief.busiestDay}.`;
     navigator.clipboard.writeText(text);
     setShared(true);
     setTimeout(() => setShared(false), 2000);

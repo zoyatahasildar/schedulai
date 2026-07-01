@@ -138,7 +138,7 @@ export function DashboardSidebar({ user }: Props) {
         <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
           <Zap className="w-4 h-4 text-white fill-white" />
         </span>
-        <span className="text-[15px] font-bold text-white">Schedule<span className="text-[#6C63FF]">AI</span></span>
+        <span className="text-[15px] font-bold text-white">Ed<span className="text-[#6C63FF]">Ora</span></span>
       </Link>
 
       {/* Nav */}
