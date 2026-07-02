@@ -30,6 +30,26 @@ const CARD_BRANDS: Record<string, string> = {
   rupay: "RuPay",
 };
 
+const RazorpayOverlay = () => {
+  const formRef = useRef<HTMLFormElement>(null);
+  
+  useEffect(() => {
+    if (formRef.current && !formRef.current.hasChildNodes()) {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/payment-button.js";
+      script.dataset.payment_button_id = "pl_T4EvaSFA4AvYtM";
+      script.async = true;
+      formRef.current.appendChild(script);
+    }
+  }, []);
+
+  return (
+    <div className="absolute inset-0 z-50 opacity-0 overflow-hidden flex items-stretch justify-stretch [&>*]:w-full [&>*]:h-full [&_form]:w-full [&_form]:h-full [&_input]:w-full [&_input]:h-full">
+      <form ref={formRef} className="w-full h-full" />
+    </div>
+  );
+};
+
 export function BillingClient() {
   const { data: session } = useSession();
   const billing = useBillingStore();
@@ -42,11 +62,12 @@ export function BillingClient() {
   });
 
   useEffect(() => {
-    // Inject Razorpay checkout script on mount
+    // Inject Razorpay checkout script on mount (for downgrades/other usage if any)
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     document.body.appendChild(script);
+
     return () => {
       document.body.removeChild(script);
     };
@@ -66,7 +87,10 @@ export function BillingClient() {
     const planOrder: PlanId[] = ["free", "pro", "promax"];
     const currentIdx = planOrder.indexOf(billing.currentPlan);
     const targetIdx = planOrder.indexOf(planId);
-    setShowConfirm({ planId, action: targetIdx > currentIdx ? "upgrade" : "downgrade" });
+    
+    if (targetIdx <= currentIdx) {
+      setShowConfirm({ planId, action: "downgrade" });
+    }
   };
 
   const handleDowngrade = () => {
@@ -77,38 +101,6 @@ export function BillingClient() {
     billing.downgradePlan(planId);
     showToast(`Switched to ${plan.name} plan`);
     setShowConfirm(null);
-  };
-
-  const handlePayment = async () => {
-    if (!showConfirm || showConfirm.planId === "free") return;
-    const planId = showConfirm.planId;
-    const plan = PLANS.find((p) => p.id === planId)!;
-    const amt = cycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
-
-    setUpgrading(planId);
-    setShowConfirm(null);
-
-    try {
-      const result = await initializePayment({
-        amount: amt * 100, // convert to paise
-        planId,
-        cycle,
-        customerEmail: session?.user?.email || "billing@edora.com",
-        customerName: session?.user?.name || "EdOra User",
-      });
-
-      if (result.success) {
-        billing.upgradePlan(planId, cycle, amt);
-        showToast(`Successfully upgraded to ${plan.name}! 🎉`);
-      } else {
-        showToast(result.error || "Payment failed", "error");
-      }
-    } catch (err) {
-      showToast("Error processing payment", "error");
-      console.error(err);
-    } finally {
-      setUpgrading(null);
-    }
   };
 
 
@@ -188,12 +180,14 @@ export function BillingClient() {
             </div>
           </div>
           {billing.currentPlan !== "promax" && (
-            <button
-              onClick={() => handlePlanAction(billing.currentPlan === "free" ? "pro" : "promax")}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white text-[13px] font-bold rounded-xl border border-white/20 hover:bg-white/25 transition-colors flex-shrink-0"
-            >
-              <ArrowRight className="w-4 h-4" /> Upgrade Now
-            </button>
+            <div className="relative flex-shrink-0">
+              <button
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white text-[13px] font-bold rounded-xl border border-white/20 hover:bg-white/25 transition-colors w-full"
+              >
+                <ArrowRight className="w-4 h-4" /> Upgrade Now
+              </button>
+              <RazorpayOverlay />
+            </div>
           )}
         </div>
       </div>
@@ -306,30 +300,35 @@ export function BillingClient() {
                     ))}
                   </div>
 
-                  <button
-                    onClick={() => handlePlanAction(plan.id)}
-                    disabled={isCurrentPlan || upgrading === plan.id}
-                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-bold transition-all ${
-                      isCurrentPlan
-                        ? "bg-emerald-500/15 text-emerald-300 cursor-default"
-                        : plan.recommended
-                        ? "bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.02] active:scale-95"
-                        : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1] border border-white/[0.06]"
-                    } disabled:opacity-60`}
-                  >
-                    {upgrading === plan.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : isCurrentPlan ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4" /> Current Plan
-                      </>
-                    ) : (
-                      <>
-                        {PLANS.indexOf(plan) > PLANS.findIndex((p) => p.id === billing.currentPlan) ? "Upgrade" : "Switch"} to {plan.name}
-                        <ChevronRight className="w-4 h-4" />
-                      </>
+                  <div className="relative w-full mt-auto">
+                    <button
+                      onClick={() => handlePlanAction(plan.id)}
+                      disabled={isCurrentPlan || upgrading === plan.id}
+                      className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-bold transition-all ${
+                        isCurrentPlan
+                          ? "bg-emerald-500/15 text-emerald-300 cursor-default"
+                          : plan.recommended
+                          ? "bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] text-white shadow-lg shadow-[#6C63FF]/25 hover:scale-[1.02] active:scale-95"
+                          : "bg-white/[0.06] text-white/80 hover:bg-white/[0.1] border border-white/[0.06]"
+                      } disabled:opacity-60`}
+                    >
+                      {upgrading === plan.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isCurrentPlan ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4" /> Current Plan
+                        </>
+                      ) : (
+                        <>
+                          {PLANS.indexOf(plan) > PLANS.findIndex((p) => p.id === billing.currentPlan) ? "Upgrade" : "Switch"} to {plan.name}
+                          <ChevronRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                    {!isCurrentPlan && PLANS.indexOf(plan) > PLANS.findIndex((p) => p.id === billing.currentPlan) && (
+                      <RazorpayOverlay />
                     )}
-                  </button>
+                  </div>
                 </div>
               </div>
             );
@@ -454,23 +453,15 @@ export function BillingClient() {
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#131a2e] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                showConfirm.action === "upgrade" ? "bg-[#6C63FF]/15" : "bg-amber-500/15"
-              }`}>
-                {showConfirm.action === "upgrade" ? (
-                  <ArrowRight className="w-5 h-5 text-[#6C63FF]" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
-                )}
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/15">
+                <AlertTriangle className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <h3 className="text-[16px] font-bold text-white">
-                  {showConfirm.action === "upgrade" ? "Confirm Upgrade" : "Confirm Downgrade"}
+                  Confirm Downgrade
                 </h3>
                 <p className="text-[12px] text-white/40">
-                  {showConfirm.action === "upgrade"
-                    ? `You'll be upgraded to the ${PLANS.find((p) => p.id === showConfirm.planId)!.name} plan.`
-                    : `You'll be switched to the ${PLANS.find((p) => p.id === showConfirm.planId)!.name} plan.`}
+                  You'll be switched to the {PLANS.find((p) => p.id === showConfirm.planId)!.name} plan.
                 </p>
               </div>
             </div>
@@ -493,26 +484,12 @@ export function BillingClient() {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              {showConfirm.action === "upgrade" && showConfirm.planId !== "free" ? (
-                <button
-                  onClick={handlePayment}
-                  disabled={upgrading !== null}
-                  className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-[#6C63FF] to-[#00D4FF] hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-[#6C63FF]/25 flex items-center justify-center gap-2"
-                >
-                  Pay ₹{(() => {
-                    const p = PLANS.find((pl) => pl.id === showConfirm.planId)!;
-                    const amt = cycle === "yearly" ? p.yearlyPrice : p.monthlyPrice;
-                    return amt.toLocaleString("en-IN");
-                  })()}
-                </button>
-              ) : (
-                <button
-                  onClick={handleDowngrade}
-                  className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white transition-colors bg-amber-500/80 hover:bg-amber-500"
-                >
-                  Confirm Downgrade
-                </button>
-              )}
+              <button
+                onClick={handleDowngrade}
+                className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white transition-colors bg-amber-500/80 hover:bg-amber-500"
+              >
+                Confirm Downgrade
+              </button>
               <button
                 onClick={() => setShowConfirm(null)}
                 className="w-full py-2.5 rounded-xl text-[13px] font-bold text-white/60 bg-white/[0.06] hover:bg-white/[0.1] transition-colors"
