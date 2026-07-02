@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { PublicHeader } from "@/components/PublicHeader";
 import { PublicFooter } from "@/components/PublicFooter";
-import { Users, Target, Shield, Heart, ArrowRight, Zap } from "lucide-react";
+import { Target, Shield, Heart, ArrowRight, Zap } from "lucide-react";
 
 export default function AboutPage() {
   useEffect(() => {
@@ -47,26 +47,7 @@ export default function AboutPage() {
     }
   ];
 
-  const team = [
-    {
-      name: "Zakiya Tahasildar",
-      role: "Founder & Lead Architect",
-      initials: "ZT",
-      color: "from-violet-500 to-indigo-600"
-    },
-    {
-      name: "Shivam Kishore",
-      role: "Lead Fullstack Engineer",
-      initials: "SK",
-      color: "from-cyan-400 to-blue-500"
-    },
-    {
-      name: "Umme Haany K",
-      role: "Senior UX Designer & Product Manager",
-      initials: "UH",
-      color: "from-emerald-400 to-teal-500"
-    }
-  ];
+
 
   return (
     <div className="public-page bg-[#fbfbfe] text-[#1a1a2e] dark:bg-[#0b1020] dark:text-white overflow-x-hidden min-h-screen transition-colors duration-300">
@@ -165,36 +146,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* TEAM SECTION */}
-      <section className="max-w-6xl mx-auto px-6 py-12 pb-24">
-        <div className="text-center max-w-2xl mx-auto reveal mb-16">
-          <span className="text-[13px] font-bold uppercase tracking-widest text-[#6c63ff] dark:text-[#9aa0ff]">Our Team</span>
-          <h2 className="text-[32px] sm:text-[40px] font-extrabold tracking-tight mt-3 text-[#1a1a2e] dark:text-white">
-            Meet the innovators
-          </h2>
-          <p className="text-[#1a1a2e]/55 dark:text-white/55 mt-4 text-[16px]">
-            We are a distributed team of engineers, designers, and organizers dedicated to building beautiful web utilities.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-6">
-          {team.map((member, i) => (
-            <div 
-              key={i} 
-              className="reveal rounded-2xl bg-white dark:bg-[#0d1326] border border-black/5 dark:border-white/5 overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center p-6 text-center"
-            >
-              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${member.color} flex items-center justify-center text-white text-2xl font-extrabold shadow-lg`}>
-                {member.initials}
-              </div>
-              <h3 className="text-lg font-bold text-[#1a1a2e] dark:text-white mt-5">{member.name}</h3>
-              <p className="text-xs text-[#6c63ff] dark:text-[#9aa0ff] font-semibold mt-1 uppercase tracking-wider">{member.role}</p>
-              <p className="text-xs text-[#1a1a2e]/45 dark:text-white/45 mt-3 leading-relaxed">
-                Dedicated to craftsmanship, performance, and responsive interfaces.
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* FOOTER */}
       <PublicFooter />
