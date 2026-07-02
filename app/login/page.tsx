@@ -7,7 +7,8 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Zap, Chrome, Check, Sun, Moon } from "lucide-react";
+import Image from "next/image";
+import { Chrome, Check, Sun, Moon } from "lucide-react";
 import { useAppearanceStore } from "@/store/appearanceStore";
 
 export default function LoginPage() {
@@ -77,13 +78,15 @@ export default function LoginPage() {
 
       <div className="bg-white dark:bg-[#131a2e] rounded-2xl shadow-xl border border-violet-100 dark:border-white/[0.05] p-8 w-full max-w-md transition-colors duration-300">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
-            <Zap className="w-5 h-5 text-white fill-white" />
-          </span>
-          <span className="text-2xl font-bold text-gray-900 dark:text-white">
-            Chrono<span className="text-[#6C63FF]">AI</span>
-          </span>
+        <div className="flex items-center justify-center mb-8">
+          <Image
+            src="/logo.png"
+            alt="EdOra"
+            width={200}
+            height={80}
+            className="object-contain h-20 w-auto"
+            priority
+          />
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">

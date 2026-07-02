@@ -5,6 +5,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAppearanceStore } from "@/store/appearanceStore";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
@@ -45,15 +46,15 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-50 glass border-b border-black/5 dark:border-white/5 bg-white/70 dark:bg-[#0b1020]/70 transition-colors duration-300">
       <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6c63ff] to-[#00d4ff] flex items-center justify-center shadow-lg shadow-[#6c63ff]/30">
-            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 2 3 14h7l-1 8 10-12h-7z" />
-            </svg>
-          </span>
-          <span className="text-[17px] font-extrabold tracking-tight text-[#1a1a2e] dark:text-white transition-colors duration-300">
-            Ed<span className="text-[#6c63ff]">Ora</span>
-          </span>
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="EdOra"
+            width={180}
+            height={72}
+            className="object-contain h-14 w-auto"
+            priority
+          />
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-[14px] font-medium text-[#1a1a2e]/70 dark:text-white/70">

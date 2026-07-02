@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
 import {
-  Zap, LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut, Bell,
+  LayoutDashboard, CalendarDays, BookOpen, Clock, BarChart3, Settings, LogOut, Bell,
   CheckCircle2, XCircle, Calendar, Plus, X, Pencil, EyeOff, CreditCard
 } from "lucide-react";
 import { useBillingStore } from "@/store/billingStore";
@@ -99,7 +99,7 @@ export function DashboardSidebar({ user }: Props) {
         .then((d) => {
           if (!cancelled) {
             const allItems = [...(d.bookings ?? []), ...(d.events ?? [])];
-            
+
             // Check for new notifications to trigger the popup
             const times = allItems.map((n) => new Date(n.at).getTime());
             const maxTime = times.length > 0 ? Math.max(...times) : Date.now();
@@ -124,7 +124,7 @@ export function DashboardSidebar({ user }: Props) {
             setNotifCount(unreadCount);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     };
     load();
     const t = setInterval(load, 30000);
@@ -134,11 +134,15 @@ export function DashboardSidebar({ user }: Props) {
   return (
     <aside className="w-[300px] flex-shrink-0 bg-[#0d1326] border-r border-white/5 sticky top-0 self-start h-screen flex flex-col p-4 overflow-hidden">
       {/* Logo */}
-      <Link href="/dashboard" className="flex items-center gap-2.5 px-2 mb-4 flex-shrink-0">
-        <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6C63FF] to-[#00D4FF] flex items-center justify-center shadow-md shadow-[#6C63FF]/30">
-          <Zap className="w-4 h-4 text-white fill-white" />
-        </span>
-        <span className="text-[15px] font-bold text-white">Ed<span className="text-[#6C63FF]">Ora</span></span>
+      <Link href="/dashboard" className="flex items-center px-2 mb-4 flex-shrink-0">
+        <Image
+          src="/logo.png"
+          alt="EdOra"
+          width={160}
+          height={64}
+          className="object-contain h-14 w-auto"
+          priority
+        />
       </Link>
 
       {/* Nav */}
@@ -150,11 +154,10 @@ export function DashboardSidebar({ user }: Props) {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
-                active
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${active
                   ? "bg-[#1e3a5f] text-white"
                   : "text-white/55 hover:bg-[#2b6cb0]/30 hover:text-white"
-              }`}
+                }`}
             >
               <Icon className="w-[18px] h-[18px]" strokeWidth={active ? 2 : 1.75} />
               <span className="flex-1">{label}</span>
@@ -173,11 +176,10 @@ export function DashboardSidebar({ user }: Props) {
       <div className="flex-shrink-0 border-t border-white/5 pt-3 mb-3">
         <Link
           href={SETTINGS_NAV.href}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
-            pathname === SETTINGS_NAV.href
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${pathname === SETTINGS_NAV.href
               ? "bg-[#1e3a5f] text-white"
               : "text-white/55 hover:bg-[#2b6cb0]/30 hover:text-white"
-          }`}
+            }`}
         >
           <SETTINGS_NAV.icon className="w-[18px] h-[18px]" strokeWidth={pathname === SETTINGS_NAV.href ? 2 : 1.75} />
           {SETTINGS_NAV.label}
